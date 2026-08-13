@@ -1,4 +1,4 @@
-# Exam Seating Allocation App
+# 🎓 Exam Seating Allocation App
 
 Matches this architecture:
 
