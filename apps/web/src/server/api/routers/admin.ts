@@ -1,27 +1,8 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedAdminProcedure, publicProcedure } from "../trpc";
-import { checkAdminPassword, getAdminCookieHeader, getClearAdminCookieHeader } from "~/lib/auth";
-import { deleteExamData, readManifest, writeExamData, writeManifest } from "~/lib/blob";
+import { createTRPCRouter, protectedAdminProcedure } from "../trpc";
+import { deleteExamData, readManifest, writeManifest } from "~/lib/blob";
 
 export const adminRouter = createTRPCRouter({
-  login: publicProcedure.input(z.object({ password: z.string() })).mutation(({ input }) => {
-    const valid = checkAdminPassword(input.password);
-    if (!valid) {
-      return { success: false, message: "Invalid admin password" };
-    }
-    return {
-      success: true,
-      cookie: getAdminCookieHeader(input.password),
-    };
-  }),
-
-  logout: publicProcedure.mutation(() => {
-    return {
-      success: true,
-      cookie: getClearAdminCookieHeader(),
-    };
-  }),
-
   deleteExam: protectedAdminProcedure
     .input(z.object({ examId: z.string() }))
     .mutation(async ({ input }) => {

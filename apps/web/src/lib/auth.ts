@@ -1,22 +1,37 @@
 import { cookies } from "next/headers";
+import {
+  ADMIN_COOKIE_NAME,
+  SESSION_MAX_AGE,
+  checkAdminPassword,
+  issueSessionToken,
+  verifySessionToken,
+} from "~/lib/admin-session";
 
-const ADMIN_COOKIE_NAME = "admin_session";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "CEC2026";
+export {
+  ADMIN_COOKIE_NAME,
+  SESSION_MAX_AGE,
+  checkAdminPassword,
+  issueSessionToken,
+  verifySessionToken,
+};
 
-export function checkAdminPassword(password: string): boolean {
-  return password === ADMIN_PASSWORD;
+export function getAdminCookieOptions(): {
+  httpOnly: boolean;
+  sameSite: "lax";
+  secure: boolean;
+  path: string;
+  maxAge: number;
+} {
+  return {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_MAX_AGE,
+  };
 }
 
 export async function isAdminAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
-  const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
-  return token === ADMIN_PASSWORD;
-}
-
-export function getAdminCookieHeader(password: string): string {
-  return `${ADMIN_COOKIE_NAME}=${password}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`;
-}
-
-export function getClearAdminCookieHeader(): string {
-  return `${ADMIN_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  return verifySessionToken(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 }

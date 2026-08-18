@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  deleteExamData,
-  readExamData,
-  readManifest,
-  writeExamData,
-  writeManifest,
-} from "~/lib/blob";
+import { deleteExamData, readManifest } from "~/lib/blob";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -23,16 +17,8 @@ export async function GET(req: Request) {
   for (const entry of manifest) {
     const expiresAt = new Date(entry.expiresAt).getTime();
     if (now > expiresAt) {
-      const examData = await readExamData(entry.examId);
-      if (examData && !examData.cleared) {
-        await writeExamData(entry.examId, {
-          ...examData,
-          cleared: true,
-          rooms: [],
-        });
-        await deleteExamData(entry.examId);
-        updatedCount++;
-      }
+      await deleteExamData(entry.examId);
+      updatedCount++;
     }
   }
 

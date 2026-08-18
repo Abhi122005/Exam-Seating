@@ -3,31 +3,36 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, ShieldCheck, AlertCircle } from "lucide-react";
-import { api } from "~/trpc/client";
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const loginMutation = api.admin.login.useMutation({
-    onSuccess: (data) => {
-      if (data.success && data.cookie) {
-        document.cookie = data.cookie;
-        router.push("/admin/schedule");
-      } else {
-        setError(data.message || "Invalid password");
-      }
-    },
-    onError: (err) => {
-      setError(err.message || "An error occurred");
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     setError("");
-    loginMutation.mutate({ password });
+
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Invalid password");
+      }
+
+      router.push("/admin/schedule");
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,10 +77,10 @@ export default function AdminLoginPage() {
 
         <button
           type="submit"
-          disabled={loginMutation.isPending}
+          disabled={loading}
           className="w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
-          {loginMutation.isPending ? "Authenticating..." : "Login to Staff Dashboard"}
+          {loading ? "Authenticating..." : "Login to Staff Dashboard"}
         </button>
       </form>
     </div>
