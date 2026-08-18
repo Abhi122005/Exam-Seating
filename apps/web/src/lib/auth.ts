@@ -8,7 +8,7 @@ export function checkAdminPassword(password: string): boolean {
 }
 
 export async function isAdminAuthenticated(): Promise<boolean> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
   return token === ADMIN_PASSWORD;
 }

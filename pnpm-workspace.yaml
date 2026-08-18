@@ -3,7 +3,7 @@ packages:
   - 'services/*'
 
 allowBuilds:
-  sharp: set this to true or false
+  sharp: true
 
 onlyBuiltDependencies:
   - sharp

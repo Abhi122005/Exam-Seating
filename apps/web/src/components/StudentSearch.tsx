@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Search, MapPin, AlertCircle, Clock, BookOpen } from "lucide-react";
 import type { ParsedRoom } from "~/lib/blob";
+import { buildRollLookup } from "~/lib/seating-format";
 
 interface StudentSearchProps {
   examId: string;
@@ -23,11 +24,23 @@ export function StudentSearch({ title, session, status, publishAt, rooms = [] }:
     roll_to?: string;
   } | null>(null);
 
+  const rollLookup = useMemo(() => buildRollLookup(rooms), [rooms]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!rollNo.trim() || status !== "live") return;
 
     const query = rollNo.trim().toUpperCase();
+
+    const hit = rollLookup.get(query);
+    if (hit) {
+      setResult({
+        found: true,
+        room_no: hit.roomNo,
+        label: hit.label,
+      });
+      return;
+    }
 
     for (const room of rooms) {
       for (const range of room.ranges) {
@@ -131,9 +144,11 @@ export function StudentSearch({ title, session, status, publishAt, rooms = [] }:
                       <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
                       {result.label}
                     </span>
-                    <span className="font-mono">
-                      Range: {result.roll_from} - {result.roll_to}
-                    </span>
+                    {result.roll_from && result.roll_to && (
+                      <span className="font-mono">
+                        Range: {result.roll_from} - {result.roll_to}
+                      </span>
+                    )}
                   </div>
                 </div>
               ) : (

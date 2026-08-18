@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "~/lib/auth";
 import { readManifest, writeExamData, writeManifest } from "~/lib/blob";
+import { compactRooms } from "~/lib/seating-format";
 
 export async function POST(req: Request) {
   const isAdmin = await isAdminAuthenticated();
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
       examDate: examDate!,
       publishAt,
       expiresAt,
-      rooms,
+      rooms: compactRooms(rooms),
     };
 
     await writeExamData(examId, examRecord);

@@ -1,29 +1,26 @@
 import { StudentSearch } from "~/components/StudentSearch";
 import { notFound } from "next/navigation";
+import { getPublicExamState } from "~/lib/exam-release";
 
-export const revalidate = 0; // dynamic client fetch
+export const revalidate = 0; // dynamic: release gate is time-based
 
-export default async function ExamPage({ params }: { params: { examId: string } }) {
-  const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
-  const res = await fetch(`${host}/api/seating/${params.examId}`, {
-    cache: "no-store",
-  });
+export default async function ExamPage({ params }: { params: Promise<{ examId: string }> }) {
+  const { examId } = await params;
+  const state = await getPublicExamState(examId);
 
-  if (!res.ok && res.status === 404) {
+  if (!state.found) {
     notFound();
   }
-
-  const data = await res.json();
 
   return (
     <div className="py-6">
       <StudentSearch
-        examId={data.examId}
-        title={data.title || "Exam Seating"}
-        session={data.session || "Morning"}
-        status={data.status}
-        publishAt={data.publishAt}
-        rooms={data.rooms || []}
+        examId={state.meta.examId}
+        title={state.meta.title || "Exam Seating"}
+        session={state.meta.session || "Morning"}
+        status={state.status}
+        publishAt={state.meta.publishAt}
+        rooms={state.rooms || []}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { put, get, del } from "@vercel/blob";
+import { gzipSync, gunzipSync } from "zlib";
 import fs from "fs/promises";
 import path from "path";
 
@@ -21,6 +22,7 @@ export interface ParsedRange {
 export interface ParsedRoom {
   room_no: string;
   ranges: ParsedRange[];
+  rolls?: Record<string, string>;
 }
 
 export interface ExamData extends ExamManifestEntry {
@@ -32,6 +34,19 @@ const MANIFEST_PATH = "exam-seating/manifest.json";
 const ACCESS = "private" as const;
 
 const LOCAL_DATA_DIR = path.join(process.cwd(), ".local_data");
+
+const GZIP_MAGIC = [0x1f, 0x8b];
+
+function serializeJson(data: unknown): Buffer {
+  return gzipSync(Buffer.from(JSON.stringify(data), "utf-8"));
+}
+
+function parseJsonBuffer(buf: Buffer): unknown {
+  if (buf.length >= 2 && buf[0] === GZIP_MAGIC[0] && buf[1] === GZIP_MAGIC[1]) {
+    return JSON.parse(gunzipSync(buf).toString("utf-8"));
+  }
+  return JSON.parse(buf.toString("utf-8"));
+}
 
 async function ensureLocalDir(dirPath: string) {
   try {
@@ -49,17 +64,17 @@ function isVercelBlobAvailable(): boolean {
 async function readLocalJson<T>(relativePath: string): Promise<T | null> {
   try {
     const fullPath = path.join(LOCAL_DATA_DIR, relativePath);
-    const content = await fs.readFile(fullPath, "utf-8");
-    return JSON.parse(content) as T;
+    const buf = await fs.readFile(fullPath);
+    return parseJsonBuffer(buf) as T;
   } catch {
     return null;
   }
 }
 
-async function writeLocalJson(relativePath: string, data: any): Promise<string> {
+async function writeLocalJson(relativePath: string, data: unknown): Promise<string> {
   const fullPath = path.join(LOCAL_DATA_DIR, relativePath);
   await ensureLocalDir(path.dirname(fullPath));
-  await fs.writeFile(fullPath, JSON.stringify(data, null, 2), "utf-8");
+  await fs.writeFile(fullPath, serializeJson(data));
   return `file://${fullPath}`;
 }
 
@@ -79,13 +94,31 @@ async function readPrivateJson<T>(pathname: string): Promise<T | null> {
       const result = await get(pathname, { access: ACCESS, useCache: false });
       if (!result) return null;
       const res = new Response(result.stream);
-      return (await res.json()) as T;
+      const buf = Buffer.from(await res.arrayBuffer());
+      return parseJsonBuffer(buf) as T;
     } catch {
       // fallback to local read if Vercel Blob fails
       return readLocalJson<T>(pathname);
     }
   }
   return readLocalJson<T>(pathname);
+}
+
+async function writePrivateJson(pathname: string, data: unknown): Promise<void> {
+  if (isVercelBlobAvailable()) {
+    try {
+      await put(pathname, serializeJson(data), {
+        access: ACCESS,
+        addRandomSuffix: false,
+        contentType: "application/gzip",
+        allowOverwrite: true,
+      });
+      return;
+    } catch {
+      // fallback to local write
+    }
+  }
+  await writeLocalJson(pathname, data);
 }
 
 export async function readManifest(): Promise<ExamManifestEntry[]> {
@@ -98,20 +131,7 @@ export async function readManifest(): Promise<ExamManifestEntry[]> {
 }
 
 export async function writeManifest(exams: ExamManifestEntry[]): Promise<void> {
-  if (isVercelBlobAvailable()) {
-    try {
-      await put(MANIFEST_PATH, JSON.stringify({ exams }), {
-        access: ACCESS,
-        addRandomSuffix: false,
-        contentType: "application/json",
-        allowOverwrite: true,
-      });
-      return;
-    } catch {
-      // fallback to local write
-    }
-  }
-  await writeLocalJson(MANIFEST_PATH, { exams });
+  await writePrivateJson(MANIFEST_PATH, { exams });
 }
 
 export function examBlobPath(examId: string): string {
@@ -122,10 +142,10 @@ export async function writeExamData(examId: string, data: ExamData): Promise<str
   const relPath = examBlobPath(examId);
   if (isVercelBlobAvailable()) {
     try {
-      const blob = await put(relPath, JSON.stringify(data), {
+      const blob = await put(relPath, serializeJson(data), {
         access: ACCESS,
         addRandomSuffix: false,
-        contentType: "application/json",
+        contentType: "application/gzip",
         allowOverwrite: true,
       });
       return blob.url;
