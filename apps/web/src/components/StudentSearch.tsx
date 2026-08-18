@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search, MapPin, AlertCircle, Clock, BookOpen } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, MapPin, AlertCircle, Clock, BookOpen, RefreshCw } from "lucide-react";
 import type { ParsedRoom } from "~/lib/blob";
 import { buildRollLookup } from "~/lib/seating-format";
 
@@ -9,26 +9,61 @@ interface StudentSearchProps {
   examId: string;
   title: string;
   session: string;
-  status: "live" | "scheduled" | "expired" | "not_found";
+  initialStatus: "live" | "scheduled" | "expired" | "not_found";
   publishAt?: string;
-  rooms?: ParsedRoom[];
 }
 
+type SearchResult = {
+  found: boolean;
+  room_no?: string;
+  label?: string;
+  roll_from?: string;
+  roll_to?: string;
+} | null;
+
+const POLL_INTERVAL_MS = 30_000;
+
 export function StudentSearch({
+  examId,
   title,
   session,
-  status,
+  initialStatus,
   publishAt,
-  rooms = [],
 }: StudentSearchProps) {
   const [rollNo, setRollNo] = useState("");
-  const [result, setResult] = useState<{
-    found: boolean;
-    room_no?: string;
-    label?: string;
-    roll_from?: string;
-    roll_to?: string;
-  } | null>(null);
+  const [result, setResult] = useState<SearchResult>(null);
+  const [status, setStatus] = useState(initialStatus);
+  const [rooms, setRooms] = useState<ParsedRoom[]>([]);
+  const [loading, setLoading] = useState(initialStatus === "live");
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const fetchState = async () => {
+      try {
+        const res = await fetch(`/api/seating/${examId}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setRooms(data.rooms || []);
+        setStatus(data.status);
+        setLoading(false);
+        if (data.status === "scheduled") {
+          timer = setTimeout(fetchState, POLL_INTERVAL_MS);
+        }
+      } catch {
+        if (cancelled) return;
+        setLoading(false);
+        timer = setTimeout(fetchState, POLL_INTERVAL_MS);
+      }
+    };
+
+    fetchState();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [examId]);
 
   const rollLookup = useMemo(() => buildRollLookup(rooms), [rooms]);
 
@@ -90,6 +125,9 @@ export function StudentSearch({
               </span>
               .
             </p>
+            <p className="text-xs mt-1 opacity-70">
+              This page updates automatically when the release goes live.
+            </p>
           </div>
         </div>
       )}
@@ -106,7 +144,14 @@ export function StudentSearch({
         </div>
       )}
 
-      {status === "live" && (
+      {status === "live" && loading && (
+        <div className="p-8 text-center text-muted-foreground flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+          Loading seating data...
+        </div>
+      )}
+
+      {status === "live" && !loading && (
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="relative">
             <input

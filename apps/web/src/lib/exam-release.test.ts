@@ -128,4 +128,29 @@ describe("exam release gate", () => {
     const state = await release.getPublicExamState("e1");
     expect(state).toMatchObject({ found: true, status: "expired" });
   });
+
+  it("returns shell meta without rooms for a live exam", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
+    const state = await release.getPublicExamMeta("e1");
+    expect(state).toMatchObject({
+      found: true,
+      status: "live",
+      meta: { examId: "e1", title: "KTU Exam" },
+    });
+    expect(state.found && state.rooms).toBeUndefined();
+  });
+
+  it("shell meta matches full state for scheduled exams", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T07:00:00.000Z"));
+    const meta = await release.getPublicExamMeta("e1");
+    const full = await release.getPublicExamState("e1");
+    expect(meta).toMatchObject({ found: true, status: "scheduled" });
+    expect(meta).toEqual(full);
+  });
 });

@@ -12,6 +12,14 @@ export type ExamReleaseState =
     };
 
 export async function getPublicExamState(examId: string): Promise<ExamReleaseState> {
+  return resolveExamState(examId, true);
+}
+
+export async function getPublicExamMeta(examId: string): Promise<ExamReleaseState> {
+  return resolveExamState(examId, false);
+}
+
+async function resolveExamState(examId: string, includeRooms: boolean): Promise<ExamReleaseState> {
   const exam = await readExamData(examId);
 
   if (!exam) {
@@ -54,7 +62,7 @@ export async function getPublicExamState(examId: string): Promise<ExamReleaseSta
     found: true,
     status: "live",
     meta: exam,
-    rooms: exam.rooms,
+    rooms: includeRooms ? exam.rooms : undefined,
     cacheControl: "public, s-maxage=30, stale-while-revalidate=30",
   };
 }
