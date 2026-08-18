@@ -18,7 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <header className="border-b border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
               <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-                <Link href="/" className="font-bold text-base flex items-center gap-2 hover:opacity-90">
+                <Link
+                  href="/"
+                  className="font-bold text-base flex items-center gap-2 hover:opacity-90"
+                >
                   <span className="w-7 h-7 rounded-lg bg-primary text-primary-foreground font-black text-xs flex items-center justify-center">
                     KTU
                   </span>

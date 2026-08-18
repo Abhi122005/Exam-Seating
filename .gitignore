@@ -39,6 +39,8 @@ prompt_draft.md
 .system_generated/
 temp_repo/
 scratch/
+tsconfig.tsbuildinfo
+coverage/
 
 # OS / IDE
 .DS_Store

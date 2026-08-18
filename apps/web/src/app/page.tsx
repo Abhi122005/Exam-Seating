@@ -20,7 +20,9 @@ export default async function HomePage() {
         <div className="p-8 text-center rounded-2xl border border-dashed border-border text-muted-foreground space-y-2">
           <Clock className="w-8 h-8 mx-auto text-muted-foreground/60" />
           <h3 className="font-semibold text-base">No Seating Schedules Released Yet</h3>
-          <p className="text-xs">Staff have not published any seating arrangements for today yet.</p>
+          <p className="text-xs">
+            Staff have not published any seating arrangements for today yet.
+          </p>
         </div>
       ) : (
         <div className="grid gap-4">

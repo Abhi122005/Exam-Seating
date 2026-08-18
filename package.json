@@ -4,7 +4,22 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter web dev",
+    "dev:parser": "cd services/parser && uvicorn main:app --reload --port 8000",
     "build": "pnpm --filter web build",
-    "start": "pnpm --filter web start"
+    "start": "pnpm --filter web start",
+    "lint": "eslint apps/web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm --filter web test",
+    "typecheck": "pnpm --filter web exec tsc --noEmit",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.23",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.9.6"
   }
 }

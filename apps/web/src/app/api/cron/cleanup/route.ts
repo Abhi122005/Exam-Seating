@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { deleteExamData, readExamData, readManifest, writeExamData, writeManifest } from "~/lib/blob";
+import {
+  deleteExamData,
+  readExamData,
+  readManifest,
+  writeExamData,
+  writeManifest,
+} from "~/lib/blob";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");

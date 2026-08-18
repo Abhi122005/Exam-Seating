@@ -42,7 +42,10 @@ export default function AdminLoginPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-4"
+      >
         {error && (
           <div className="p-3 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />

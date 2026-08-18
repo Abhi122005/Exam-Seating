@@ -4,18 +4,16 @@ import { checkAdminPassword, getAdminCookieHeader, getClearAdminCookieHeader } f
 import { deleteExamData, readManifest, writeExamData, writeManifest } from "~/lib/blob";
 
 export const adminRouter = createTRPCRouter({
-  login: publicProcedure
-    .input(z.object({ password: z.string() }))
-    .mutation(({ input }) => {
-      const valid = checkAdminPassword(input.password);
-      if (!valid) {
-        return { success: false, message: "Invalid admin password" };
-      }
-      return {
-        success: true,
-        cookie: getAdminCookieHeader(input.password),
-      };
-    }),
+  login: publicProcedure.input(z.object({ password: z.string() })).mutation(({ input }) => {
+    const valid = checkAdminPassword(input.password);
+    if (!valid) {
+      return { success: false, message: "Invalid admin password" };
+    }
+    return {
+      success: true,
+      cookie: getAdminCookieHeader(input.password),
+    };
+  }),
 
   logout: publicProcedure.mutation(() => {
     return {
@@ -40,7 +38,7 @@ export const adminRouter = createTRPCRouter({
         examId: z.string(),
         publishAt: z.string(),
         expiresAt: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const manifest = await readManifest();

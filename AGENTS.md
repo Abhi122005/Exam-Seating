@@ -49,11 +49,22 @@ pnpm --filter web build
 python -m py_compile services/parser/main.py services/parser/pdf_parser.py
 ```
 
+## 🧰 DX Tooling
+
+- **Pre-commit hooks** (Husky + lint-staged): auto-format + eslint-fix staged files, then full `typecheck` and `test`. Hooked in `.husky/pre-commit` — run `pnpm exec lint-staged` to test.
+- **Formatting:** Prettier (`.prettierrc.json`). Run `pnpm format` to write, `pnpm format:check` to verify.
+- **Linting:** ESLint flat config + `eslint-config-next` (`eslint.config.mjs`). Run `pnpm lint`.
+- **Typecheck:** `pnpm typecheck` (tsc --noEmit). Note: `next.config.mjs` sets `ignoreBuildErrors`, so typecheck is NOT covered by the build.
+- **Tests:** Vitest (`apps/web/src/**/*.test.ts`) covering the release gate, seating compaction, and the gzip storage seam. Run `pnpm test`.
+- **Python parser locally:** `pnpm dev:parser` (uvicorn on :8000).
+- Node version pinned in `.nvmrc` (24); editor defaults in `.editorconfig`.
+
 ---
 
 ## 📝 Commit Conventions
 
 Use concise, conventional commits:
+
 - `feat: ...` for new features
 - `fix: ...` for bug fixes
 - `docs: ...` for documentation

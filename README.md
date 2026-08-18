@@ -1,4 +1,5 @@
 # 🎓 CEC Exam Seating Allocation Portal
+
 ### College of Engineering Chengannur (CEC) — KTU Examination Cell
 
 > High-concurrency, zero-cost exam seating lookup system built for **College of Engineering Chengannur (CEC)** with the **T3 Stack** (Next.js 15 App Router, tRPC v11, Tailwind CSS, TypeScript) and **Python FastAPI**. Designed to handle **1,000+ concurrent students** with **$0 monthly cost** and **zero risk of unexpected charges**.
@@ -47,14 +48,14 @@
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Monorepo** | `pnpm` workspaces | Clean workspace management (`apps/web` + `services/parser`) |
-| **Frontend** | Next.js 15 App Router | React 19, Server Components & Route Handlers |
-| **API Layer** | tRPC v11 | End-to-end type-safe client/server communication |
-| **Styling** | Tailwind CSS | Responsive mobile-first design with `next-themes` |
-| **Storage** | `@vercel/blob` (Private) | Encrypted JSON seating data storage |
-| **PDF Parser** | Python 3.14 + FastAPI | Multi-column KTU PDF extraction with `pdfplumber` |
+| Layer          | Technology               | Purpose                                                     |
+| -------------- | ------------------------ | ----------------------------------------------------------- |
+| **Monorepo**   | `pnpm` workspaces        | Clean workspace management (`apps/web` + `services/parser`) |
+| **Frontend**   | Next.js 15 App Router    | React 19, Server Components & Route Handlers                |
+| **API Layer**  | tRPC v11                 | End-to-end type-safe client/server communication            |
+| **Styling**    | Tailwind CSS             | Responsive mobile-first design with `next-themes`           |
+| **Storage**    | `@vercel/blob` (Private) | Encrypted JSON seating data storage                         |
+| **PDF Parser** | Python 3.14 + FastAPI    | Multi-column KTU PDF extraction with `pdfplumber`           |
 
 ---
 
@@ -87,6 +88,7 @@ exam-seating/
 ## 🚀 Quick Start
 
 ### 1. Local Zero-Config Development (No Cloud Tokens Needed)
+
 ```bash
 # Clone the repository
 git clone https://github.com/sebin-gg/iedc-web-management-cell-task1.git
@@ -98,6 +100,7 @@ pnpm install
 # Start local Next.js development server
 pnpm dev
 ```
+
 Open `http://localhost:3000` to test Student Search, or `http://localhost:3000/admin/login` for Staff Portal (Default Master Password: `CEC2026`).
 
 > **Note:** When running locally without cloud tokens, the app automatically uses local file system storage (`.local_data/`) and built-in fallback parser logic.
@@ -105,6 +108,7 @@ Open `http://localhost:3000` to test Student Search, or `http://localhost:3000/a
 ---
 
 ### 2. Optional: Run Local Python Parser Service
+
 ```bash
 cd services/parser
 pip install -r requirements.txt
@@ -116,6 +120,7 @@ uvicorn main:app --reload --port 8000
 ## ☁️ Production Deployment (100% Free Tier)
 
 ### 1. Python Parser (Render Free Tier)
+
 1. Create a **New Web Service** on Render.
 2. Root Directory: `services/parser`
 3. Build Command: `pip install -r requirements.txt`
@@ -123,6 +128,7 @@ uvicorn main:app --reload --port 8000
 5. Set Environment Variable: `BACKEND_SHARED_SECRET=change-me-secret`
 
 ### 2. Next.js Web App (Vercel Free Tier)
+
 1. Deploy `apps/web` on Vercel.
 2. Add a **Vercel Blob** store from the Storage tab (`access: 'private'`).
 3. Set Environment Variables:
@@ -142,7 +148,15 @@ pnpm --filter web build
 
 # Verify Python parser syntax
 python -m py_compile services/parser/main.py services/parser/pdf_parser.py
+
+# Lint, typecheck, and test (also run automatically on every commit via Husky)
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm format:check
 ```
+
+Pre-commit hooks (Husky + lint-staged) auto-format and lint staged files, then run the full typecheck and test suite.
 
 ---
 

@@ -17,8 +17,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
       ...shape,
       data: {
         ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
     };
   },
@@ -27,16 +26,14 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
-export const protectedAdminProcedure = t.procedure.use(
-  async ({ ctx, next }) => {
-    if (!ctx.isAdmin) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin login required" });
-    }
-    return next({
-      ctx: {
-        ...ctx,
-        isAdmin: true,
-      },
-    });
+export const protectedAdminProcedure = t.procedure.use(async ({ ctx, next }) => {
+  if (!ctx.isAdmin) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin login required" });
   }
-);
+  return next({
+    ctx: {
+      ...ctx,
+      isAdmin: true,
+    },
+  });
+});

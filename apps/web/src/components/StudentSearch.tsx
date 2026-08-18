@@ -14,7 +14,13 @@ interface StudentSearchProps {
   rooms?: ParsedRoom[];
 }
 
-export function StudentSearch({ title, session, status, publishAt, rooms = [] }: StudentSearchProps) {
+export function StudentSearch({
+  title,
+  session,
+  status,
+  publishAt,
+  rooms = [],
+}: StudentSearchProps) {
   const [rollNo, setRollNo] = useState("");
   const [result, setResult] = useState<{
     found: boolean;
@@ -79,7 +85,10 @@ export function StudentSearch({ title, session, status, publishAt, rooms = [] }:
             <h3 className="font-semibold text-sm">Seating Not Released Yet</h3>
             <p className="text-xs mt-1 opacity-90">
               Seating allocation for this slot will be released at{" "}
-              <span className="font-bold">{publishAt ? new Date(publishAt).toLocaleString() : "scheduled time"}</span>.
+              <span className="font-bold">
+                {publishAt ? new Date(publishAt).toLocaleString() : "scheduled time"}
+              </span>
+              .
             </p>
           </div>
         </div>
@@ -155,7 +164,8 @@ export function StudentSearch({ title, session, status, publishAt, rooms = [] }:
                 <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-900 dark:text-rose-200 flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
                   <div className="text-sm">
-                    No seat matching <span className="font-bold">{rollNo.toUpperCase()}</span> found in this session.
+                    No seat matching <span className="font-bold">{rollNo.toUpperCase()}</span> found
+                    in this session.
                   </div>
                 </div>
               )}

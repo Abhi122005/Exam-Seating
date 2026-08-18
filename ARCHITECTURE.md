@@ -35,6 +35,7 @@ This document provides a deep-dive technical explanation of the architecture, se
 ## 2. Zero-Cost Concurrency Engineering
 
 ### Why Traditional Systems Fail Under Rush Traffic
+
 - During exam morning rushes (9:50 AM – 10:00 AM), 1,000+ students hit the seating portal within a 5-minute window.
 - Traditional SQL query architectures execute: `SELECT * FROM seating WHERE roll_no = '...'`.
 - This leads to:
@@ -43,6 +44,7 @@ This document provides a deep-dive technical explanation of the architecture, se
   - Unexpected server resource bill spikes.
 
 ### The Solution: CDN Edge Caching + Client Range Search
+
 1. **Edge CDN Caching (`Cache-Control: public, s-maxage=30`):**
    - The gatekeeper API endpoint `/api/seating/[examId]` returns the exam seating JSON payload.
    - Vercel's global CDN caches this HTTP response at edge locations worldwide for 30 seconds.
@@ -58,11 +60,11 @@ This document provides a deep-dive technical explanation of the architecture, se
 
 To ensure developers can test the application 100% locally without cloud accounts, every cloud service has an automatic fallback:
 
-| Component | Cloud Production Mode | Local Development Fallback |
-|-----------|-----------------------|----------------------------|
-| **Storage** | Private Vercel Blob (`@vercel/blob`) | File System (`.local_data/`) |
-| **PDF Parser** | Python FastAPI on Render | Node.js Built-in Mock Parser |
-| **Cron Worker** | `cron-job.org` + `CRON_SECRET` | Dev mode bypass (`NODE_ENV === 'development'`) |
+| Component       | Cloud Production Mode                | Local Development Fallback                     |
+| --------------- | ------------------------------------ | ---------------------------------------------- |
+| **Storage**     | Private Vercel Blob (`@vercel/blob`) | File System (`.local_data/`)                   |
+| **PDF Parser**  | Python FastAPI on Render             | Node.js Built-in Mock Parser                   |
+| **Cron Worker** | `cron-job.org` + `CRON_SECRET`       | Dev mode bypass (`NODE_ENV === 'development'`) |
 
 ---
 

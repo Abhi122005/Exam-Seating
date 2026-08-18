@@ -11,7 +11,7 @@ export default function AdminUploadPage() {
   const [session, setSession] = useState("Morning");
   const [examDate, setExamDate] = useState(new Date().toISOString().split("T")[0]);
   const [publishAt, setPublishAt] = useState(
-    new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16)
+    new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16),
   );
 
   const [loading, setLoading] = useState(false);
@@ -76,7 +76,10 @@ export default function AdminUploadPage() {
         </div>
       </div>
 
-      <form onSubmit={handleUpload} className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-5">
+      <form
+        onSubmit={handleUpload}
+        className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-5"
+      >
         {error && (
           <div className="p-3 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />

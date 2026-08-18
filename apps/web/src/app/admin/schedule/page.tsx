@@ -49,7 +49,9 @@ export default function AdminSchedulePage() {
         <div className="p-8 text-center rounded-2xl border border-dashed border-border text-muted-foreground space-y-3">
           <FileUp className="w-8 h-8 mx-auto text-muted-foreground/60" />
           <h3 className="font-semibold text-sm">No Seating Schedules Created</h3>
-          <p className="text-xs">Click "Upload New Seating PDF" to publish seating arrangements.</p>
+          <p className="text-xs">
+            Click &quot;Upload New Seating PDF&quot; to publish seating arrangements.
+          </p>
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
