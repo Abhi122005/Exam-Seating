@@ -9,27 +9,29 @@
 ## 📸 Architecture & Data Flow
 
 ```
-                                  STAFF PORTAL
-                                       │
-                      (1) Upload PDF + Schedule Release Time
-                                       ▼
-                       FastAPI PDF Parser (Render Free)
-                                       │
-                    (2) Parse PDF ➔ Extract Roll Ranges
-                                       ▼
-                     Next.js API & Private Vercel Blob
-                                       │
-                     (3) Store Private JSON (Encrypted)
-                                       ▼
-                        ┌─────────────────────────────┐
-                        │ /api/seating/[examId]       │
-                        │ (Server-Side Time Gate)     │
-                        └──────────────┬──────────────┘
-                                       │
-                         (4) Edge Cache (s-maxage=30)
-                                       ▼
-                                STUDENT PHONES
-                     (1000+ Concurrent Searches / <1ms)
+                                   STAFF PORTAL
+                                        │
+                       (1) Upload PDF + Schedule Release Time
+                                        ▼
+                        FastAPI PDF Parser (Render Free)
+                                        │
+                     (2) Parse PDF ➔ Extract Roll Ranges
+                                        ▼
+                      Next.js API & Private Vercel Blob
+                                        │
+                 (3) Compress + Gate: gzip payload, release module
+                                        ▼
+        ┌───────────────────────────────┬───────────────────────────────┐
+        │ /exam/[examId]                │ /api/seating/[examId]         │
+        │ (dynamic origin shell,       │ (server-side time gate +      │
+        │  metadata only, no rooms)    │  full payload leg)            │
+        └───────────────┬──────────────┴───────────────┬───────────────┘
+                        ▼                              │
+                 STUDENT PHONES                        ▼
+              (browser fetches rooms          Edge Cache (s-maxage=30)
+               from the cached leg)                 ▼
+                                              STUDENT PHONES
+                              (1000+ Concurrent Searches / <1ms)
 ```
 
 ---
@@ -37,9 +39,10 @@
 ## ✨ Features
 
 - **⚡ Instant Client-Side Search (<1ms):** Performs in-browser lexicographic roll range matching for CEC students (`CS24C01`–`CS24C30`). Zero database hits during rush hours.
-- **🔒 Private Blob Release Gate:** Seating JSON is encrypted & private (`access: 'private'`). Access is strictly gated by server-side `publishAt` timestamps.
+- **🌍 CDN Edge-Cached Payload:** The shell page renders instantly from the origin while the rooms payload is served by Vercel's edge cache (`s-maxage=30`) — 99.9% of rush requests never execute server code.
+- **🔒 Private Blob Release Gate:** Seating data is private (`access: 'private'`) and gzip-compressed at rest. Access is strictly gated by server-side `publishAt` timestamps.
 - **📄 KTU PDF Parser Engine:** Python FastAPI service powered by `pdfplumber` for row reconstruction across complex multi-column KTU seating layout tables.
-- **🔐 Zero-Database Staff Auth:** Secure HTTP-only cookie authentication powered by master admin password (`CEC2026`).
+- **🔐 Zero-Database Staff Auth:** HMAC-signed HttpOnly session cookie (never the raw password) set server-side by `/api/admin/login`.
 - **💻 Dual-Mode Local Fallbacks:** Automatic fallback to local file storage (`.local_data/`) and mock parser when running locally without cloud tokens.
 - **🌓 Minimal Dark / Light Mode:** Built-in theme switcher powered by `next-themes` and Tailwind CSS.
 - **🧹 Automated Expired Cleanup:** Scheduled cron worker automatically wipes seating data 5 hours after exam release.
@@ -54,7 +57,7 @@
 | **Frontend**   | Next.js 15 App Router    | React 19, Server Components & Route Handlers                |
 | **API Layer**  | tRPC v11                 | End-to-end type-safe client/server communication            |
 | **Styling**    | Tailwind CSS             | Responsive mobile-first design with `next-themes`           |
-| **Storage**    | `@vercel/blob` (Private) | Encrypted JSON seating data storage                         |
+| **Storage**    | `@vercel/blob` (Private) | Private gzipped JSON seating data storage                   |
 | **PDF Parser** | Python 3.14 + FastAPI    | Multi-column KTU PDF extraction with `pdfplumber`           |
 
 ---
@@ -67,15 +70,18 @@ exam-seating/
 ├── package.json               # Root monorepo scripts
 ├── AGENTS.md                  # Guidelines for AI agents & contributors
 ├── ARCHITECTURE.md            # Detailed architectural & scalability breakdown
+├── CONTEXT.md                 # Domain glossary & seam map
 ├── apps/
 │   └── web/                   # Next.js 15 + tRPC App Router application
 │       ├── .env.example       # Default environment variables (ADMIN_PASSWORD=CEC2026)
+│       ├── vitest.config.ts   # Test runner configuration
 │       ├── src/
 │       │   ├── app/           # App Router pages & API handlers
 │       │   ├── server/api/    # tRPC routers (admin & seating)
-│       │   ├── lib/           # Blob & Auth helpers (with local fallbacks)
+│       │   ├── lib/           # Deep modules: blob, exam-release, exam-publish,
+│       │   │                  # seating-format, admin-session (with local fallbacks)
 │       │   └── components/    # StudentSearch & ThemeToggle components
-│       └── tailwind.config.ts
+│       └── postcss.config.mjs # Tailwind v4 PostCSS setup
 └── services/
     └── parser/                # Python FastAPI PDF parser service
         ├── main.py            # FastAPI service endpoints
