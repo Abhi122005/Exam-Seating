@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
 
-export const dynamic = "force-static";
-export const dynamicParams = false;
-
 const KNOWN_ROUTES: string[][] = [
   ["exam"],
   ["admin", "login"],
