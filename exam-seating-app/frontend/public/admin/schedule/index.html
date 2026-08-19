@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Manage published exam seating releases">
+<title>Schedule Manager | Exam Seating</title>
+<link rel="stylesheet" href="/site.css">
+<style>
+.head-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.head-row h1{font-size:1.6rem;margin:0}
+.hint-row{color:var(--mfg);font-size:.8rem}
+.qr-cell{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:10px}
+.qr-cell img{background:#fff;padding:8px;border-radius:12px;width:140px;height:140px}
+.qr-cell .mono{font-size:.7rem;color:var(--mfg);word-break:break-all}
+.empty{text-align:center;padding:2rem;border:1px dashed var(--line);border-radius:16px;color:var(--mfg);margin-top:1.5rem}
+.empty h3{color:var(--fg);font-weight:600;font-size:.95rem;margin:.4rem 0}
+</style>
+</head>
+<body>
+<nav class="nav"><a class="brand" href="/"><b>KTU</b>Exam Seating</a><div class="links"><a class="lnk" href="/admin/upload">+ Publish new</a><button id="logout" class="lnk" style="background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--mfg)">Sign out</button></div></nav>
+<main>
+<div class="page">
+<div class="head-row">
+<div><h1>Published Exams</h1><p class="hint-row">Postpone a release time, pull up a QR, or remove an exam.</p></div>
+</div>
+<div id="err"></div>
+<div id="rows" class="mt"></div>
+</div>
+</main>
+<footer>Exam Seating Allocation Portal &middot; Fast &amp; Free</footer>
+<script>
+var rows=document.getElementById('rows'),err=document.getElementById('err');
+var esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var statusFor=function(e){var n=Date.now(),p=new Date(e.publishAt).getTime(),x=new Date(e.expiresAt).getTime();return n<p?'scheduled':(n>x?'expired':'live')};
+document.getElementById('logout').onclick=function(){fetch('/api/admin/logout',{method:'POST'}).then(function(){location.href='/admin/login'})};
+load();
+function load(){
+  rows.innerHTML='<div class="loading"><span class="spinner"></span>Loading schedules...</div>';
+  fetch('/api/admin/manifest').then(function(r){
+    if(r.status===401){location.replace('/admin/login');throw new Error('redirect')}
+    if(!r.ok)throw new Error('load');
+    return r.json();
+  }).then(function(m){
+    err.innerHTML='';
+    if(!m.length){rows.innerHTML='<div class="empty"><h3>Nothing Published Yet</h3><p>Click &quot;+ Publish new&quot; to upload a seating PDF and schedule its release.</p></div>';return}
+    rows.innerHTML='<div class="card" style="padding:0;overflow:hidden;margin-top:0"><div style="overflow-x:auto"><table class="exam-table" style="margin-top:0"><thead><tr><th>Exam Title</th><th>Session</th><th>Exam Date</th><th>Release Time</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+m.map(function(e){
+      var s=statusFor(e),pill=s==='live'?'b-live':(s==='expired'?'b-expired':'b-scheduled');
+      return '<tr data-id="'+esc(e.examId)+'" data-pub="'+esc(e.publishAt)+'"><td style="font-weight:700">'+esc(e.title)+'</td><td><span class="badge b-scheduled">'+(e.session==='FN'?'Forenoon':'Afternoon')+'</span></td><td class="mono">'+esc(e.examDate)+'</td><td class="mono"><span class="pub">'+esc(new Date(e.publishAt).toLocaleString())+'</span></td><td><span class="badge '+pill+'">'+s+'</span></td><td><div class="actions"><button class="btn-link postpone">Postpone</button><button class="btn-link qr">QR</button><button class="btn danger" style="padding:6px 12px;font-size:.8rem">Remove</button></div><div class="qr-cell"></div></td></tr>';
+    }).join('')+'</tbody></table></div></div>';
+  }).catch(function(x){if(x.message==='redirect')return;err.innerHTML='<div class="error">Failed to load schedules</div>';rows.innerHTML=''});
+}
+rows.addEventListener('click',function(ev){
+  var b=ev.target.closest('button');if(!b)return;
+  var tr=ev.target.closest('tr');if(!tr)return;
+  var id=tr.dataset.id;
+  if(b.classList.contains('qr')){
+    var cell=tr.querySelector('.qr-cell');
+    if(cell.dataset.open){cell.innerHTML='';delete cell.dataset.open;return}
+    var url=location.origin+'/exam?id='+encodeURIComponent(id);
+    cell.innerHTML='<img src="/api/qr?text='+encodeURIComponent(url)+'" alt="QR code" width="140" height="140"><span class="mono">'+esc(url)+'</span>';
+    cell.dataset.open='1';return;
+  }
+  if(b.classList.contains('postpone')){
+    if(b.dataset.mode){savePostpone(b,tr);return}
+    var current=new Date(tr.dataset.pub);
+    var input=document.createElement('input');
+    input.type='datetime-local';
+    input.value=new Date(current.getTime()-current.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    tr.querySelector('.pub').replaceWith(input);
+    b.textContent='Save';
+    b.dataset.mode='1';
+    return;
+  }
+  if(b.classList.contains('danger')){
+    if(!confirm('Remove this exam and clear its data early?'))return;
+    b.disabled=true;
+    fetch('/api/admin/exams/'+encodeURIComponent(id),{method:'DELETE'}).then(function(r){
+      if(!r.ok)throw new Error('delete');
+      load();
+    }).catch(function(){err.innerHTML='<div class="error">Delete failed</div>';b.disabled=false});
+    return;
+  }
+});
+function savePostpone(b,tr){
+  var inp=tr.querySelector('input[type=datetime-local]');
+  var val=inp&&inp.value;
+  if(!val){b.textContent='Postpone';b.dataset.mode='';return}
+  b.disabled=true;
+  fetch('/api/admin/exams/'+encodeURIComponent(tr.dataset.id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({publishAt:new Date(val).toISOString()})}).then(function(r){
+    if(!r.ok)throw new Error('save');
+    load();
+  }).catch(function(){err.innerHTML='<div class="error">Postpone failed</div>';load()});
+}
+</script>
+</body>
+</html>

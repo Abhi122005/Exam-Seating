@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Upload a seating PDF and schedule its release">
+<title>Publish Seating | Exam Seating</title>
+<link rel="stylesheet" href="/site.css">
+<style>
+.head-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.head-row h1{font-size:1.5rem;margin:0}
+.ampm{font-size:.75rem;color:var(--mfg);font-weight:500;margin-top:-10px}
+.result-card{text-align:center}
+.result-card img{background:#fff;padding:10px;border-radius:16px;margin:12px 0}
+.result-card .url{color:var(--mfg);font-size:.75rem;word-break:break-all}
+.ok{color:#6ee7b7;border:1px solid rgba(52,211,153,.3);background:rgba(16,185,129,.12);padding:10px 14px;border-radius:10px;font-size:.9rem;font-weight:600;margin-bottom:14px}
+</style>
+</head>
+<body>
+<nav class="nav"><a class="brand" href="/"><b>KTU</b>Exam Seating</a><div class="links"><a class="lnk" href="/admin/schedule">View published exams &rarr;</a><button id="logout" class="lnk" style="background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--mfg)">Sign out</button></div></nav>
+<main>
+<div class="page">
+<div class="head-row">
+<div><h1>Publish Seating Allocation</h1><p class="hint" style="margin-top:.25rem">Upload KTU seating PDF &amp; set the automatic release schedule</p></div>
+</div>
+<form id="form" class="card">
+<div id="msg"></div>
+<label>Seating PDF<input id="file" type="file" accept="application/pdf" required></label>
+<p class="hint" style="margin-top:-10px">Supports the "Hall Allocation Summary" layout and the older "Subject: CODE" table layout. The PDF is parsed automatically — no manual roll-number entry.</p>
+<label>Exam title<input id="title" type="text" placeholder="First Internal Examination - MARCH 2026 (S2, Afternoon)" required></label>
+<div class="row">
+<label>Session<select id="session"><option value="FN">Forenoon (FN)</option><option value="AN">Afternoon (AN)</option></select></label>
+<label>Exam date<input id="date" type="date" required></label>
+</div>
+<label>Publish date &amp; time (when the QR unlocks)<input id="publish" type="datetime-local" required><span class="ampm" id="ampm">AM (Forenoon)</span></label>
+<p class="hint" style="margin-top:-10px">Seating info automatically stops showing 5 hours after this time.</p>
+<button id="btn" class="btn primary" type="submit" style="width:100%">Publish &amp; Generate QR</button>
+</form>
+<div id="result"></div>
+</div>
+</main>
+<footer>Exam Seating Allocation Portal &middot; Fast &amp; Free</footer>
+<script>
+var esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var msg=document.getElementById('msg'),resBox=document.getElementById('result');
+var ampm=document.getElementById('ampm');
+document.getElementById('logout').onclick=function(){fetch('/api/admin/logout',{method:'POST'}).then(function(){location.href='/admin/login'})};
+fetch('/api/admin/manifest').then(function(r){if(r.status===401)location.replace('/admin/login')}).catch(function(){});
+document.getElementById('session').onchange=function(){ampm.textContent=this.value==='FN'?'AM (Forenoon)':'PM (Afternoon)'};
+var now=new Date();
+document.getElementById('date').value=now.toISOString().split('T')[0];
+document.getElementById('publish').value=new Date(now.getTime()+30*60000).toISOString().slice(0,16);
+var file=document.getElementById('file'),title=document.getElementById('title');
+file.onchange=function(){if(!title.value&&file.files[0])title.value=file.files[0].name.replace(/\.pdf$/i,'')};
+document.getElementById('form').onsubmit=function(e){
+  e.preventDefault();
+  var f=file.files[0],btn=document.getElementById('btn'),label=btn.innerHTML;
+  msg.innerHTML='';resBox.innerHTML='';
+  if(!f){msg.innerHTML='<div class="error">Choose a seating PDF to upload.</div>';return}
+  if(!title.value||!document.getElementById('date').value||!document.getElementById('publish').value){msg.innerHTML='<div class="error">Fill in title, exam date, and publish date/time.</div>';return}
+  btn.disabled=true;btn.textContent='Parsing & Publishing PDF...';
+  var fd=new FormData();
+  fd.append('file',f);fd.append('title',title.value);fd.append('session',document.getElementById('session').value);fd.append('examDate',document.getElementById('date').value);fd.append('publishAt',new Date(document.getElementById('publish').value).toISOString());
+  fetch('/api/admin/publish',{method:'POST',body:fd}).then(function(r){
+    return r.json().then(function(d){if(!r.ok)throw new Error(d.error||'Upload failed');return d});
+  }).then(function(d){
+    msg.innerHTML='<div class="ok">Seating PDF published successfully!</div>';
+    var warn=d.warning?'<div class="error" style="margin:10px 0">'+esc(d.warning)+'</div>':'';
+    resBox.innerHTML='<div class="card result-card"><h2>Published!</h2>'+warn+'<p class="hint">Seating info unlocks at: '+esc(new Date(d.publishAt).toLocaleString())+'</p><img src="/api/qr?text='+encodeURIComponent(d.studentUrl)+'" alt="QR code" width="220" height="220"><p class="url mono">'+esc(d.studentUrl)+'</p><div class="actions" style="margin-top:14px;display:flex;gap:10px;justify-content:center"><a class="btn" href="/admin/schedule">View schedule</a><a class="btn primary" href="/exam?id='+encodeURIComponent(d.examId)+'">Open exam page</a></div></div>';
+    btn.disabled=false;btn.innerHTML=label;
+  }).catch(function(x){
+    msg.innerHTML='<div class="error">'+esc(x.message||'Failed to publish seating PDF')+'</div>';
+    btn.disabled=false;btn.innerHTML=label;
+  });
+};
+</script>
+</body>
+</html>

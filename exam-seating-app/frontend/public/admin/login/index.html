@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Staff portal sign in">
+<title>Staff Portal | Exam Seating</title>
+<link rel="stylesheet" href="/site.css">
+<style>
+.wrap{max-width:28rem;margin:0 auto;padding-top:3rem}
+.ic-lg{width:1.5rem;height:1.5rem}
+.shield{width:3rem;height:3rem;border-radius:1rem;background:rgba(124,58,237,.15);color:#c084fc;border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.card form{padding:1.5rem}
+</style>
+</head>
+<body>
+<nav class="nav"><a class="brand" href="/"><b>KTU</b>Exam Seating</a><div class="links"><a class="lnk" href="/">Student Lookup</a></div></nav>
+<main>
+<div class="page"><div class="wrap">
+<div class="center">
+<div class="shield"><svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+<h1 class="mt" style="text-align:center;font-size:1.5rem">Staff Portal</h1>
+<p class="hint center">Enter the master admin password to manage exam seating releases</p>
+</div>
+<div class="card">
+<div id="err"></div>
+<form id="form">
+<label>Master Password<input id="pw" type="password" placeholder="Enter admin password" required autocomplete="current-password"></label>
+<button id="btn" class="btn primary" type="submit" style="width:100%">Sign in</button>
+</form>
+</div>
+</div></div>
+</main>
+<footer>Exam Seating Allocation Portal &middot; Fast &amp; Free</footer>
+<script>
+var esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+fetch('/api/admin/manifest').then(function(r){if(r.ok)location.replace('/admin/schedule')}).catch(function(){});
+document.getElementById('form').onsubmit=function(e){
+  e.preventDefault();
+  var pw=document.getElementById('pw'),btn=document.getElementById('btn'),err=document.getElementById('err');
+  btn.disabled=true;btn.textContent='Signing in...';err.innerHTML='';
+  fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw.value})}).then(function(r){
+    return r.json().then(function(d){if(!r.ok)throw new Error(d.message||'Invalid password')});
+  }).then(function(){location.href='/admin/schedule'}).catch(function(x){
+    err.innerHTML='<div class="error">'+esc(x.message||'An error occurred')+'</div>';
+    btn.disabled=false;btn.textContent='Sign in';
+  });
+};
+</script>
+</body>
+</html>

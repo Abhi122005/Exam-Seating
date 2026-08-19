@@ -1,7 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  turbopack: { root: process.cwd() },
-};
+const nextConfig = {};
 
 export default nextConfig;
