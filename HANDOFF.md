@@ -1,13 +1,13 @@
 # HANDOFF — Exam Seating App (static HTML + API-only rewrite)
 
-> For **Abhishek** (repo owner) or any maintainer picking this up.
-> Last updated: 2026-08-20 by sebin-gg (conversion + verification complete).
+> For **Abhishek** (repo owner) or any maintainer.
+> Last updated: 2026-08-20 by sebin-gg. Conversion + verification complete.
 
 ## What happened
 
-The React/Next.js Pages Router frontend was fully replaced with a **static HTML + API-only Next.js 15 App Router** app, mirroring the iedc website architecture (sebin-gg/iedc-web-management-cell-task1):
+React/Next.js Pages Router frontend fully replaced with **static HTML + API-only Next.js 15 App Router** app, mirroring iedc website architecture (sebin-gg/iedc-web-management-cell-task1):
 
-- Every page is hand-rolled HTML/CSS/vanilla JS in `frontend/public/`, served by a catch-all route — **zero client framework JS**, no hydration.
+- Every page = hand-rolled HTML/CSS/vanilla JS in `frontend/public/`, served by catch-all route. Zero client framework JS, no hydration.
 - All backend work moved to `frontend/src/app/api/*` route handlers.
 - All features preserved: scheduled release gate, postpone, QR codes, countdown, clipboard copy, dark glassmorphism, logout, auto-cleanup.
 - Storage: gzip-compressed private Vercel Blob with `.local_data/` local fallback (zero-config local dev).
@@ -54,21 +54,21 @@ Env vars (`frontend/.env.example`): `ADMIN_PASSWORD` (default `CEC2026`), `PARSE
 
 Budget: page HTML < 14 KB (all pass); combined HTML+CSS+JS ~14.6 KB (exam page over).
 
-## Recommended next tasks (do these)
+## Recommended next tasks
 
-1. **Trim `site.css` (6,374 B vs 3,755 B in iedc reference).** Every page pays this file, so it's the biggest lever — dedupe overlapping rules, drop unused ones. Should save ~1.5–2 KB/page and pull the exam page under the combined budget.
-2. **Dedupe `/exam` inline `<style>` (≈2.5 KB)** — it restates shared classes already in `site.css`; keep only true deltas (~1 KB saving).
-3. Optional micro-wins: 3 inline SVG icons on landing page (~600 B); admin/login inlines its own `esc()` (60 B) — can import from `/seating.js`.
+1. **Trim `site.css` (6,374 B vs 3,755 B in iedc reference).** Every page pays this file — biggest lever. Dedupe overlapping rules, drop unused. Save ~1.5–2 KB/page, pulls exam page under combined budget.
+2. **Dedupe `/exam` inline `<style>` (≈2.5 KB)** — restates shared classes already in `site.css`; keep only true deltas (~1 KB saving).
+3. Optional micro-wins: 3 inline SVG icons on landing page (~600 B); admin/login inlines own `esc()` (60 B) — can import from `/seating.js`.
 
 ## Conventions (keep)
 
-- **NEVER format `public/**/*.html` with Prettier** — it inflates files 40–60% and blows the 14 KB budget.
-- Keep pages < 14 KB raw; check sizes with `Get-ChildItem public -Recurse -File | Sort-Object Length`.
+- **NEVER format `public/**/*.html` with Prettier** — inflates files 40–60%, blows 14 KB budget.
+- Keep pages < 14 KB raw. Check: `Get-ChildItem public -Recurse -File | Sort-Object Length`.
 - Don't expand roll ranges into rows server-side — matching stays client-side lexicographic (`roll_from ≤ regNo ≤ roll_to`).
 - No database. No client framework. `pnpm` only (lockfile committed).
-- Tests live beside code: `src/lib/*.test.ts` + `public/seating.test.ts` (conformance test ties client lookup to server lookup).
-- `frontend/.local_data/` is runtime fallback storage — gitignored, never commit it.
-- Pre-commit style: conventional commits (`feat:` / `fix:` / `refactor:` / `docs:`).
+- Tests beside code: `src/lib/*.test.ts` + `public/seating.test.ts` (conformance test ties client lookup to server lookup).
+- `frontend/.local_data/` = runtime fallback storage — gitignored, never commit.
+- Conventional commits (`feat:` / `fix:` / `refactor:` / `docs:`).
 
 ## Deploy notes
 
