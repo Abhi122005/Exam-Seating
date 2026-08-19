@@ -1,5 +1,5 @@
 {
   "*.{ts,tsx,mjs,cjs,js,json,css,md,yml,yaml}": "prettier --write",
   "*.{ts,tsx}": "eslint --fix",
-  "*.py": "ruff check --fix && ruff format"
+  "*.py": "node scripts/lint-staged-py.mjs"
 }

@@ -101,6 +101,7 @@ git clone https://github.com/sebin-gg/iedc-web-management-cell-task1.git
 cd iedc-web-management-cell-task1
 
 # Install dependencies
+# pnpm install also installs the pre-commit hooks automatically (via husky)
 pnpm install
 
 # Start local Next.js development server
@@ -113,6 +114,16 @@ pnpm dev:all
 Open `http://localhost:3000` to test Student Search, or `http://localhost:3000/admin/login` for Staff Portal (Default Master Password: `CEC2026`).
 
 > **Note:** When running locally without cloud tokens, the app automatically uses local file system storage (`.local_data/`) and built-in fallback parser logic.
+
+#### Pre-commit hooks (all platforms)
+
+Hooks install automatically with `pnpm install` (no manual step).
+
+- **Staged files only:** Prettier formats web files, ESLint fixes `*.ts`/`*.tsx`, Ruff lints + formats `*.py`. Fast by design.
+- **No Python lint? No problem:** if `ruff` is not installed, the Python hook prints a warning and commits anyway — it never blocks you.
+- **Install ruff for real Python linting** (recommended for parser work): `pip install -r services/parser/requirements-dev.txt`.
+- **Heavy gates (typecheck/test/build) run in CI**, not on commit — PRs catch them.
+- Reinstall hooks manually at any time with `pnpm run prepare`.
 
 ---
 
