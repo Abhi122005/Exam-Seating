@@ -2,7 +2,8 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import Moon from "lucide-react/dist/esm/icons/moon.mjs";
+import Sun from "lucide-react/dist/esm/icons/sun.mjs";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();

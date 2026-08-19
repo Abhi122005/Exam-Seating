@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileUp, Calendar, Clock, AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
+import FileUp from "lucide-react/dist/esm/icons/file-up.mjs";
+import Calendar from "lucide-react/dist/esm/icons/calendar.mjs";
+import Clock from "lucide-react/dist/esm/icons/clock.mjs";
+import AlertCircle from "lucide-react/dist/esm/icons/alert-circle.mjs";
+import ArrowLeft from "lucide-react/dist/esm/icons/arrow-left.mjs";
+import CheckCircle2 from "lucide-react/dist/esm/icons/check-circle-2.mjs";
 
 export default function AdminUploadPage() {
   const router = useRouter();

@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, MapPin, AlertCircle, Clock, BookOpen, RefreshCw } from "lucide-react";
+import Search from "lucide-react/dist/esm/icons/search.mjs";
+import MapPin from "lucide-react/dist/esm/icons/map-pin.mjs";
+import AlertCircle from "lucide-react/dist/esm/icons/alert-circle.mjs";
+import Clock from "lucide-react/dist/esm/icons/clock.mjs";
+import BookOpen from "lucide-react/dist/esm/icons/book-open.mjs";
+import RefreshCw from "lucide-react/dist/esm/icons/refresh-cw.mjs";
 import type { ParsedRoom } from "~/lib/blob";
 import { buildRollLookup } from "~/lib/seating-format";
 

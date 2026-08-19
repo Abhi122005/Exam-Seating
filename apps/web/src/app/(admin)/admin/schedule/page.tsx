@@ -3,7 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { api } from "~/trpc/client";
-import { Plus, Trash2, Calendar, Clock, RefreshCw, FileUp } from "lucide-react";
+import Plus from "lucide-react/dist/esm/icons/plus.mjs";
+import Trash2 from "lucide-react/dist/esm/icons/trash-2.mjs";
+import Calendar from "lucide-react/dist/esm/icons/calendar.mjs";
+import Clock from "lucide-react/dist/esm/icons/clock.mjs";
+import RefreshCw from "lucide-react/dist/esm/icons/refresh-cw.mjs";
+import FileUp from "lucide-react/dist/esm/icons/file-up.mjs";
 
 export default function AdminSchedulePage() {
   const utils = api.useUtils();
