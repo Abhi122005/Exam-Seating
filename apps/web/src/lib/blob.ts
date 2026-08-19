@@ -91,7 +91,7 @@ async function deleteLocalFile(relativePath: string): Promise<void> {
 async function readPrivateJson<T>(pathname: string): Promise<T | null> {
   if (isVercelBlobAvailable()) {
     try {
-      const result = await get(pathname, { access: ACCESS, useCache: false });
+      const result = await get(pathname, { access: ACCESS, useCache: true });
       if (!result) return null;
       const res = new Response(result.stream);
       const buf = Buffer.from(await res.arrayBuffer());

@@ -11,7 +11,7 @@ This file contains guidelines, architectural rules, and project patterns for AI 
   - Dependency additions: `pnpm --filter web add <pkg>`
   - Install command: `pnpm install` (use `pnpm install --no-frozen-lockfile` if modifying `package.json`).
 - **Monorepo Layout:**
-  - `apps/web`: Next.js 15 App Router + tRPC v11 + Tailwind CSS + TypeScript + `@vercel/blob`.
+  - `apps/web`: Next.js 15 App Router + Tailwind CSS + TypeScript + `@vercel/blob`. Plain `fetch` REST API routes — no tRPC, no React Query, no client data libraries.
   - `services/parser`: Python 3.14 + FastAPI + `pdfplumber`.
 
 ---

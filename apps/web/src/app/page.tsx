@@ -2,7 +2,7 @@ import { readManifest } from "~/lib/blob";
 import Link from "next/link";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 
-export const revalidate = 10; // revalidate manifest every 10s
+export const revalidate = 30; // revalidate manifest every 30s
 
 export default async function HomePage() {
   const manifest = await readManifest();

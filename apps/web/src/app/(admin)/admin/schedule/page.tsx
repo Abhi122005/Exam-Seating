@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api } from "~/trpc/client";
+import type { ExamManifestEntry } from "~/lib/blob";
 import Plus from "lucide-react/dist/esm/icons/plus.mjs";
 import Trash2 from "lucide-react/dist/esm/icons/trash-2.mjs";
 import Calendar from "lucide-react/dist/esm/icons/calendar.mjs";
@@ -11,18 +11,39 @@ import RefreshCw from "lucide-react/dist/esm/icons/refresh-cw.mjs";
 import FileUp from "lucide-react/dist/esm/icons/file-up.mjs";
 
 export default function AdminSchedulePage() {
-  const utils = api.useUtils();
-  const manifestQuery = api.seating.getManifest.useQuery();
+  const [manifest, setManifest] = useState<ExamManifestEntry[] | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
 
-  const deleteMutation = api.admin.deleteExam.useMutation({
-    onSuccess: () => {
-      utils.seating.getManifest.invalidate();
-    },
-  });
+  const loadManifest = async () => {
+    try {
+      const res = await fetch("/api/admin/manifest");
+      if (!res.ok) throw new Error("Failed to load schedules");
+      setManifest(await res.json());
+      setError("");
+    } catch {
+      setManifest([]);
+      setError("Failed to load schedules");
+    }
+  };
 
-  const handleDelete = (examId: string) => {
-    if (confirm(`Are you sure you want to delete exam ${examId}?`)) {
-      deleteMutation.mutate({ examId });
+  useEffect(() => {
+    loadManifest();
+  }, []);
+
+  const handleDelete = async (examId: string) => {
+    if (!confirm(`Are you sure you want to delete exam ${examId}?`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/exams/${encodeURIComponent(examId)}/delete`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      await loadManifest();
+    } catch {
+      setError("Delete failed");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -45,12 +66,18 @@ export default function AdminSchedulePage() {
         </Link>
       </div>
 
-      {manifestQuery.isLoading ? (
+      {error && (
+        <div className="p-3 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-200 text-xs">
+          {error}
+        </div>
+      )}
+
+      {manifest === null ? (
         <div className="p-8 text-center text-muted-foreground flex items-center justify-center gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-primary" />
           Loading schedules...
         </div>
-      ) : manifestQuery.data?.length === 0 ? (
+      ) : manifest.length === 0 ? (
         <div className="p-8 text-center rounded-2xl border border-dashed border-border text-muted-foreground space-y-3">
           <FileUp className="w-8 h-8 mx-auto text-muted-foreground/60" />
           <h3 className="font-semibold text-sm">No Seating Schedules Created</h3>
@@ -72,7 +99,7 @@ export default function AdminSchedulePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {manifestQuery.data?.map((exam) => (
+                {manifest.map((exam) => (
                   <tr key={exam.examId} className="hover:bg-accent/50 transition-colors">
                     <td className="p-3.5 font-bold">{exam.title}</td>
                     <td className="p-3.5">
@@ -87,7 +114,7 @@ export default function AdminSchedulePage() {
                     <td className="p-3.5 text-right">
                       <button
                         onClick={() => handleDelete(exam.examId)}
-                        disabled={deleteMutation.isPending}
+                        disabled={deleting}
                         className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors disabled:opacity-50"
                         title="Delete seating file"
                       >
