@@ -38,4 +38,5 @@ Canonical vocabulary for the CEC Exam Seating Portal. Use these terms in code, d
 - Every storage write/read crosses `lib/blob.ts` — keep new adapters behind it.
 - Every public status decision crosses `lib/exam-release.ts` — keep the gate out of route handlers and components.
 - Student-page roll lookup and status display cross `public/seating.js` — keep `findSeat`/`statusFor`/`runSeatingApp` out of inline page scripts; it is tested via `public/seating.test.ts` (conformance against `buildRollLookup`).
+- Shared page chrome styles live in `public/site.css` (linked before each page's inline `<style>` so page-specific rules win the cascade); keep new cross-page rules there, page-only rules inline.
 - Admin mutations stay behind `protectedAdminProcedure` or the admin auth check; never re-implement the password check in a route.

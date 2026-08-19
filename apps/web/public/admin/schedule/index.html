@@ -5,36 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/icon.svg">
 <title>Staff Seating Schedule Manager | KTU Exam Seating</title>
+<link rel="stylesheet" href="/site.css">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:hsl(0 0% 100%);--fg:hsl(222.2 84% 4.9%);--card:var(--bg);--primary:hsl(221.2 83.2% 53.3%);--pfg:hsl(210 40% 98%);--muted:hsl(210 40% 96.1%);--mfg:hsl(215.4 16.3% 46.9%);--accent:hsl(210 40% 96.1%);--border:hsl(214.3 31.8% 91.4%);--rose:rgb(244 63 94);--amber:rgb(245 158 11)}
-.dark{--bg:hsl(222.2 84% 4.9%);--fg:hsl(210 40% 98%);--primary:hsl(217.2 91.2% 59.8%);--pfg:hsl(222.2 47.4% 11.2%);--muted:hsl(217.2 32.6% 17.5%);--mfg:hsl(215 20.2% 65.1%);--accent:hsl(217.2 32.6% 17.5%);--border:hsl(217.2 32.6% 17.5%)}
-body{color:var(--fg);background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;min-height:100vh;display:flex;flex-direction:column}
-header{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--card) 85%,transparent);backdrop-filter:blur(8px)}
-.hd{max-width:64rem;margin:0 auto;padding:0 1rem;height:3.5rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
-.logo{display:flex;align-items:center;gap:.5rem;font-weight:700;text-decoration:none;color:var(--fg)}
-.logo b{width:1.75rem;height:1.75rem;border-radius:.5rem;background:var(--primary);color:var(--pfg);font-size:.75rem;display:flex;align-items:center;justify-content:center}
-.hd nav{display:flex;align-items:center;gap:.5rem}
-.staff{font-size:.75rem;font-weight:600;color:var(--mfg);text-decoration:none;display:flex;align-items:center;gap:.25rem;padding:.375rem .625rem;border-radius:.5rem}
-.staff:hover{color:var(--fg);background:var(--accent)}
-.tbtn{width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;border-radius:.5rem;border:1px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer}
-.tbtn:hover{background:var(--accent)}
-.i-sun{display:none}.dark .i-sun{display:block}.dark .i-moon{display:none}
-main{flex:1;width:100%;max-width:64rem;margin:0 auto;padding:1rem}
-footer{border-top:1px solid var(--border);padding:1rem;text-align:center;font-size:.75rem;color:var(--mfg)}
 .wrap{max-width:48rem;margin:0 auto}
-.ic{width:1rem;height:1rem;flex-shrink:0;vertical-align:middle;display:inline-block}
-.ic-sm{width:.875rem;height:.875rem}.ic-lg{width:2rem;height:2rem}
+.ic-lg{width:2rem;height:2rem}
 .h1{font-size:1.5rem;font-weight:700;letter-spacing:-.025em}
 .sub{font-size:.75rem;color:var(--mfg);margin-top:.25rem}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.375rem;border:none;border-radius:.75rem;padding:.625rem 1rem;font-size:.75rem;font-weight:600;background:var(--primary);color:var(--pfg);cursor:pointer;text-decoration:none}
 .btn:hover{opacity:.9}.btn:disabled{opacity:.5;cursor:default}
 .head-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1.5rem}
-.alert{display:flex;gap:.5rem;align-items:flex-start;padding:.75rem 1rem;border-radius:.75rem;font-size:.75rem;margin-bottom:1rem}
-.a-err{border:1px solid color-mix(in srgb,var(--rose) 20%,transparent);background:color-mix(in srgb,var(--rose) 10%,transparent);color:#9f1239}.dark .a-err{color:#fecdd3}
-.spinner{width:1rem;height:1rem;border:2px solid var(--primary);border-top-color:transparent;border-radius:9999px;animation:spin 1s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:2rem;color:var(--mfg);font-size:.875rem}
 .tw{border:1px solid var(--border);border-radius:.75rem;background:var(--card);overflow:hidden;box-shadow:0 1px 2px rgb(0 0 0/.05)}
 .ovh{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.75rem}
@@ -42,11 +21,8 @@ th{text-align:left;padding:.875rem;background:var(--muted);color:var(--mfg);font
 td{padding:.875rem;border-bottom:1px solid var(--border)}
 tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--accent)}
-.badge{display:inline-flex;align-items:center;padding:.125rem .5rem;border-radius:9999px;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
 .b-sched{border:1px solid color-mix(in srgb,var(--amber) 20%,transparent);background:color-mix(in srgb,var(--amber) 10%,transparent);color:#d97706}.dark .b-sched{color:#fbbf24}
 .bold{font-weight:700}
-.muted{color:var(--mfg)}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .danger{padding:.375rem;border:none;background:none;color:var(--rose);border-radius:.5rem;cursor:pointer;display:inline-flex}
 .danger:hover{background:color-mix(in srgb,var(--rose) 10%,transparent)}
 .danger:disabled{opacity:.5}

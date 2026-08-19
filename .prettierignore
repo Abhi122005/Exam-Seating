@@ -6,3 +6,4 @@ pnpm-lock.yaml
 .husky
 coverage
 apps/web/public/**/*.html
+apps/web/public/site.css
