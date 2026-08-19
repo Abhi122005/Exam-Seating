@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Instant, zero-delay exam seating allocation lookup for students">
+<title>KTU Exam Seating Allocation Portal</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:hsl(0 0% 100%);--fg:hsl(222.2 84% 4.9%);--card:var(--bg);--primary:hsl(221.2 83.2% 53.3%);--pfg:hsl(210 40% 98%);--muted:hsl(210 40% 96.1%);--mfg:hsl(215.4 16.3% 46.9%);--accent:hsl(210 40% 96.1%);--border:hsl(214.3 31.8% 91.4%);--rose:rgb(244 63 94);--amber:rgb(245 158 11);--emerald:rgb(16 185 129)}
+.dark{--bg:hsl(222.2 84% 4.9%);--fg:hsl(210 40% 98%);--primary:hsl(217.2 91.2% 59.8%);--pfg:hsl(222.2 47.4% 11.2%);--muted:hsl(217.2 32.6% 17.5%);--mfg:hsl(215 20.2% 65.1%);--accent:hsl(217.2 32.6% 17.5%);--border:hsl(217.2 32.6% 17.5%)}
+body{color:var(--fg);background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--card) 85%,transparent);backdrop-filter:blur(8px)}
+.hd{max-width:64rem;margin:0 auto;padding:0 1rem;height:3.5rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:700;text-decoration:none;color:var(--fg)}
+.logo b{width:1.75rem;height:1.75rem;border-radius:.5rem;background:var(--primary);color:var(--pfg);font-size:.75rem;display:flex;align-items:center;justify-content:center}
+.hd nav{display:flex;align-items:center;gap:.5rem}
+.staff{font-size:.75rem;font-weight:600;color:var(--mfg);text-decoration:none;display:flex;align-items:center;gap:.25rem;padding:.375rem .625rem;border-radius:.5rem}
+.staff:hover{color:var(--fg);background:var(--accent)}
+.tbtn{width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;border-radius:.5rem;border:1px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer}
+.tbtn:hover{background:var(--accent)}
+.i-sun{display:none}.dark .i-sun{display:block}.dark .i-moon{display:none}
+main{flex:1;width:100%;max-width:64rem;margin:0 auto;padding:1rem}
+footer{border-top:1px solid var(--border);padding:1rem;text-align:center;font-size:.75rem;color:var(--mfg)}
+.wrap{max-width:42rem;margin:0 auto}
+.card{border:1px solid var(--border);background:var(--card);border-radius:1rem;box-shadow:0 1px 2px rgb(0 0 0/.05)}
+.ic{width:1rem;height:1rem;flex-shrink:0;vertical-align:middle;display:inline-block}
+.ic-sm{width:.875rem;height:.875rem}
+.h1{font-size:1.875rem;font-weight:800;letter-spacing:-.025em}
+.sub{font-size:.875rem;color:var(--mfg)}
+.muted{color:var(--mfg)}
+.center{text-align:center}
+.mt{margin-top:1rem}.mt2{margin-top:1.5rem}
+.badge{display:inline-flex;align-items:center;padding:.125rem .5rem;border-radius:9999px;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.b-live{border:1px solid color-mix(in srgb,var(--emerald) 20%,transparent);background:color-mix(in srgb,var(--emerald) 10%,transparent);color:#059669}.dark .b-live{color:#34d399}
+.b-sched{border:1px solid color-mix(in srgb,var(--amber) 20%,transparent);background:color-mix(in srgb,var(--amber) 10%,transparent);color:#d97706}.dark .b-sched{color:#fbbf24}
+.spinner{width:1rem;height:1rem;border:2px solid var(--primary);border-top-color:transparent;border-radius:9999px;animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:2rem;color:var(--mfg);font-size:.875rem}
+.alert{display:flex;gap:.5rem;align-items:flex-start;padding:.75rem 1rem;border-radius:.75rem;font-size:.75rem}
+.a-err{border:1px solid color-mix(in srgb,var(--rose) 20%,transparent);background:color-mix(in srgb,var(--rose) 10%,transparent);color:#9f1239}.dark .a-err{color:#fecdd3}
+.grid{display:grid;gap:1rem}
+.exam-card{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.25rem;border:1px solid var(--border);background:var(--card);border-radius:.75rem;box-shadow:0 1px 2px rgb(0 0 0/.05);text-decoration:none;color:var(--fg);transition:border-color .15s}
+.exam-card:hover{border-color:var(--primary)}
+.etitle{display:flex;align-items:center;gap:.5rem;font-weight:700}
+.emeta{display:flex;align-items:center;gap:1rem;font-size:.75rem;color:var(--mfg);margin-top:.375rem}
+.earrow{color:var(--mfg);transition:transform .15s,color .15s}
+.exam-card:hover .earrow{color:var(--primary);transform:translateX(2px)}
+.empty{padding:2rem;text-align:center;color:var(--mfg)}
+.empty h3{font-weight:700;color:var(--fg);margin-bottom:.375rem;font-size:1rem}
+.empty p{font-size:.75rem}
+</style>
+<script>try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
+</head>
+<body>
+<header><div class="hd"><a class="logo" href="/"><b>KTU</b>Exam Seating</a><nav><a class="staff" href="/admin/login"><svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Staff Portal</a><button class="tbtn" id="tbtn" aria-label="Toggle theme"><svg class="ic i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="ic i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button></nav></div></header>
+<main><div class="wrap center mt2">
+<h1 class="h1">Find My Exam Seat</h1>
+<p class="sub mt">Select your exam session below to check your allocated hall &amp; seat instantly.</p>
+<div id="list" class="mt2"></div>
+</div></main>
+<footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
+<script>
+document.getElementById('tbtn').onclick=function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light')};
+var list=document.getElementById('list'),esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var cal='<svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+var clk='<svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+var arw='<svg class="ic earrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+list.innerHTML='<div class="loading"><span class="spinner"></span>Seating schedules streaming in...</div>';
+fetch('/api/manifest').then(function(r){return r.json()}).then(function(data){
+  if(!data.length){list.innerHTML='<div class="card empty"><svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:2rem;height:2rem;margin:0 auto .75rem;display:block;opacity:.6"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><h3>No Seating Schedules Released Yet</h3><p>Staff have not published any seating arrangements for today yet.</p></div>';return}
+  list.innerHTML='<div class="grid"></div>';
+  var g=list.firstChild,html='';
+  data.forEach(function(e){
+    var now=Date.now(),live=now>=new Date(e.publishAt).getTime()&&now<=new Date(e.expiresAt).getTime();
+    html+='<a class="exam-card" href="/exam?id='+encodeURIComponent(e.examId)+'"><div><div class="etitle"><span>'+esc(e.title)+'</span><span class="badge '+(live?'b-live':'b-sched')+'">'+(live?'Live Now':'Scheduled')+'</span></div><div class="emeta"><span>'+cal+esc(e.examDate)+'</span><span>'+clk+'Session: '+esc(e.session)+'</span></div></div>'+arw+'</a>';
+  });
+  g.innerHTML=html;
+}).catch(function(){list.innerHTML='<div class="alert a-err">Failed to load schedules. Please refresh the page.</div>'});
+</script>
+</body>
+</html>

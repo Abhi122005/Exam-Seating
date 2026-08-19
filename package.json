@@ -2,14 +2,23 @@
   "name": "exam-seating-monorepo",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=11 <12"
+  },
   "scripts": {
     "dev": "pnpm --filter web dev",
-    "dev:parser": "cd services/parser && uvicorn main:app --reload --port 8000",
+    "dev:all": "pnpm -r --parallel dev",
+    "dev:parser": "pnpm --filter parser dev",
     "build": "pnpm --filter web build",
     "start": "pnpm --filter web start",
     "lint": "eslint apps/web",
+    "lint:python": "pnpm --filter parser lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "format:python": "pnpm --filter parser format",
+    "format:check:python": "pnpm --filter parser format:check",
     "test": "pnpm --filter web test",
     "typecheck": "pnpm --filter web exec tsc --noEmit",
     "prepare": "husky"

@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Admin bypass: a commit message or PR title containing `[skip ci]` skips CI,
+  # but ONLY for admins listed in the repo variable CI_ADMINS (comma-separated
+  # GitHub usernames, e.g. `sebin-gg`). Non-admins cannot skip; empty or missing
+  # CI_ADMINS means nobody can bypass.
+  decide:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.decide.outputs.should-run }}
+    steps:
+      - name: Resolve admin skip-ci bypass
+        id: decide
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+          ADMINS: ${{ vars.CI_ADMINS }}
+        run: |
+          HEAD_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          MESSAGE="$(gh api "repos/${{ github.repository }}/commits/${HEAD_SHA}" --jq '.commit.message' 2>/dev/null || true)"
+          if printf '%s' "$MESSAGE" | grep -q '\[skip ci\]' \
+            && ! printf '%s' "$ADMINS" | tr ',' '\n' | grep -qx "$ACTOR"; then
+            echo "should-run=false"
+            echo "Bypass denied: [skip ci] is admin-only (CI_ADMINS repo variable)."
+          else
+            echo "should-run=true"
+          fi
+
+  # Conventional-commit title check (feat:, fix:, chore:, docs:, refactor:,
+  # perf:, test:, build:, ci:, style:, revert:, merge:). Skips alongside the
+  # quality gate when an admin uses `[skip ci]` in the PR title.
+  pr-title:
+    name: PR Title Convention
+    needs: decide
+    if: github.event_name == 'pull_request' && needs.decide.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check conventional commit prefix
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! printf '%s' "$TITLE" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|merge)(\(.+\))?: .+'; then
+            echo "PR title must follow conventional commits: 'type(scope): subject'" >&2
+            echo "Got: $TITLE" >&2
+            exit 1
+          fi
+
+  quality:
+    name: Lint / Typecheck / Test / Build
+    needs: decide
+    if: needs.decide.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Version comes from the packageManager field in package.json (pnpm@11.21.0)
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Lint (web)
+        run: pnpm lint
+      - name: Lint (parser, ruff)
+        run: |
+          python -m pip install --quiet ruff
+          ruff check services/parser
+          ruff format --check services/parser
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Test
+        run: pnpm test
+      - name: Build
+        run: pnpm --filter web build
+      - name: Python parser syntax
+        run: python -m py_compile services/parser/main.py services/parser/pdf_parser.py

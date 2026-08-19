@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staff Admin Portal | KTU Exam Seating</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:hsl(0 0% 100%);--fg:hsl(222.2 84% 4.9%);--card:var(--bg);--primary:hsl(221.2 83.2% 53.3%);--pfg:hsl(210 40% 98%);--muted:hsl(210 40% 96.1%);--mfg:hsl(215.4 16.3% 46.9%);--accent:hsl(210 40% 96.1%);--border:hsl(214.3 31.8% 91.4%);--rose:rgb(244 63 94)}
+.dark{--bg:hsl(222.2 84% 4.9%);--fg:hsl(210 40% 98%);--primary:hsl(217.2 91.2% 59.8%);--pfg:hsl(222.2 47.4% 11.2%);--muted:hsl(217.2 32.6% 17.5%);--mfg:hsl(215 20.2% 65.1%);--accent:hsl(217.2 32.6% 17.5%);--border:hsl(217.2 32.6% 17.5%)}
+body{color:var(--fg);background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--card) 85%,transparent);backdrop-filter:blur(8px)}
+.hd{max-width:64rem;margin:0 auto;padding:0 1rem;height:3.5rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:700;text-decoration:none;color:var(--fg)}
+.logo b{width:1.75rem;height:1.75rem;border-radius:.5rem;background:var(--primary);color:var(--pfg);font-size:.75rem;display:flex;align-items:center;justify-content:center}
+.hd nav{display:flex;align-items:center;gap:.5rem}
+.staff{font-size:.75rem;font-weight:600;color:var(--mfg);text-decoration:none;display:flex;align-items:center;gap:.25rem;padding:.375rem .625rem;border-radius:.5rem}
+.staff:hover{color:var(--fg);background:var(--accent)}
+.tbtn{width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;border-radius:.5rem;border:1px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer}
+.tbtn:hover{background:var(--accent)}
+.i-sun{display:none}.dark .i-sun{display:block}.dark .i-moon{display:none}
+main{flex:1;width:100%;max-width:64rem;margin:0 auto;padding:1rem}
+footer{border-top:1px solid var(--border);padding:1rem;text-align:center;font-size:.75rem;color:var(--mfg)}
+.wrap{max-width:28rem;margin:0 auto;padding-top:3rem}
+.card{border:1px solid var(--border);background:var(--card);border-radius:1rem;box-shadow:0 1px 2px rgb(0 0 0/.05)}
+.ic{width:1rem;height:1rem;flex-shrink:0;vertical-align:middle;display:inline-block}
+.ic-lg{width:1.5rem;height:1.5rem}
+.center{text-align:center}
+.mt{margin-top:1rem}.mt2{margin-top:1.5rem}
+.h1{font-size:1.5rem;font-weight:700}
+.sub{font-size:.75rem;color:var(--mfg)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.375rem;border:none;border-radius:.75rem;padding:.625rem 1rem;font-size:.875rem;font-weight:600;background:var(--primary);color:var(--pfg);cursor:pointer}
+.btn:hover{opacity:.9}.btn:disabled{opacity:.5;cursor:default}
+.btn-block{width:100%}
+.input{width:100%;padding:.625rem .875rem;border-radius:.75rem;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:.875rem;outline:none}
+.input:focus{box-shadow:0 0 0 2px var(--primary)}
+.input-wrap{position:relative}
+.input-wrap .input{padding-left:2.5rem}
+.input-wrap .ic{position:absolute;left:.75rem;top:.8rem;color:var(--mfg)}
+.field>label{display:block;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--mfg);margin-bottom:.375rem}
+.alert{display:flex;gap:.5rem;align-items:flex-start;padding:.75rem 1rem;border-radius:.75rem;font-size:.75rem;margin-bottom:1rem}
+.a-err{border:1px solid color-mix(in srgb,var(--rose) 20%,transparent);background:color-mix(in srgb,var(--rose) 10%,transparent);color:#9f1239}.dark .a-err{color:#fecdd3}
+.shield{width:3rem;height:3rem;border-radius:1rem;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);border:1px solid color-mix(in srgb,var(--primary) 20%,transparent);display:flex;align-items:center;justify-content:center;margin:0 auto}
+</style>
+<script>try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
+</head>
+<body>
+<header><div class="hd"><a class="logo" href="/"><b>KTU</b>Exam Seating</a><nav><a class="staff" href="/admin/login"><svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Staff Portal</a><button class="tbtn" id="tbtn" aria-label="Toggle theme"><svg class="ic i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="ic i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button></nav></div></header>
+<main><div class="wrap">
+<div class="center mt2">
+<div class="shield"><svg class="ic ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+<h1 class="h1 mt">Staff Admin Portal</h1>
+<p class="sub mt">Enter master admin password to access PDF seating management</p>
+</div>
+<form id="form" class="card mt2" style="padding:1.5rem">
+<div id="err"></div>
+<div class="field"><label>Master Password</label><div class="input-wrap"><input id="pw" class="input" type="password" placeholder="Enter admin password" required autocomplete="current-password"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+<button id="btn" class="btn btn-block" type="submit">Login to Staff Dashboard</button>
+</form>
+</div></main>
+<footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
+<script>
+document.getElementById('tbtn').onclick=function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light')};
+fetch('/api/admin/manifest').then(function(r){if(r.ok)location.replace('/admin/schedule')}).catch(function(){});
+var esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+document.getElementById('form').onsubmit=function(e){
+  e.preventDefault();
+  var pw=document.getElementById('pw'),btn=document.getElementById('btn'),err=document.getElementById('err');
+  btn.disabled=true;btn.textContent='Authenticating...';err.innerHTML='';
+  fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw.value})}).then(function(r){
+    return r.json().then(function(d){if(!r.ok)throw new Error(d.message||'Invalid password')});
+  }).then(function(){location.href='/admin/schedule'}).catch(function(x){
+    err.innerHTML='<div class="alert a-err"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><div>'+esc(x.message||'An error occurred')+'</div></div>';
+    btn.disabled=false;btn.textContent='Login to Staff Dashboard';
+  });
+};
+</script>
+</body>
+</html>

@@ -5,3 +5,4 @@ pnpm-lock.yaml
 .github
 .husky
 coverage
+apps/web/public/**/*.html

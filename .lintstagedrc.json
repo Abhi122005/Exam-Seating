@@ -1,4 +1,5 @@
 {
   "*.{ts,tsx,mjs,cjs,js,json,css,md,yml,yaml}": "prettier --write",
-  "*.{ts,tsx}": "eslint --fix"
+  "*.{ts,tsx}": "eslint --fix",
+  "*.py": "ruff check --fix && ruff format"
 }

@@ -93,6 +93,19 @@ To ensure developers can test the application 100% locally without cloud account
 | Storage    | `apps/web/src/lib/blob.ts`           | Gzip seam, Vercel Blob / `.local_data/` adapters                                                       |
 | Compaction | `apps/web/src/lib/seating-format.ts` | `compactRooms` + `buildRollLookup`                                                                     |
 | Session    | `apps/web/src/lib/admin-session.ts`  | HMAC token issue/verify, constant-time password check                                                  |
-| Auth glue  | `apps/web/src/lib/auth.ts`           | Next.js `cookies()` access for route handlers and tRPC context                                         |
+| Auth glue  | `apps/web/src/lib/auth.ts`           | Next.js `cookies()` access for route handlers and admin auth check                                     |
 
 See `CONTEXT.md` for the domain glossary.
+
+---
+
+## 6. Handover: Fork & Redeploy
+
+Repo owner: **sebin-gg**. If CEC maintainers cannot reach the owner, fork the
+repo and redeploy instead of waiting: `apps/web` on Vercel, `services/parser`
+on Render (or any host). All configuration is environment-variable based — no
+secrets or database live in the repo — so a fork starts from `.env.example`,
+sets its own tokens, and republishes PDFs (old exam blobs remain under the
+original Vercel account). The zero-cost guarantee, dual-mode fallbacks, and
+`CI_ADMINS` admin bypass all transfer unchanged. See
+`docs/adr/0001-fork-and-redeploy-handover.md` for rationale.

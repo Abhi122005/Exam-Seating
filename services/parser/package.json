@@ -1,0 +1,11 @@
+{
+  "name": "parser",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn main:app --reload --port 8000",
+    "lint": "ruff check .",
+    "format": "ruff format .",
+    "format:check": "ruff format --check ."
+  }
+}

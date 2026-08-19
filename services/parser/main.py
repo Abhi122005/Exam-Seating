@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
@@ -25,8 +24,8 @@ BACKEND_SHARED_SECRET = os.environ.get("BACKEND_SHARED_SECRET", "change-me")
 class ParsedRange(BaseModel):
     roll_from: str
     roll_to: str
-    label: Optional[str] = None
-    count: Optional[int] = None
+    label: str | None = None
+    count: int | None = None
 
 
 class ParsedRoomOut(BaseModel):
@@ -37,10 +36,10 @@ class ParsedRoomOut(BaseModel):
 class ParsePdfResponse(BaseModel):
     rooms: list[ParsedRoomOut]
     source: str
-    warning: Optional[str] = None
+    warning: str | None = None
 
 
-def _check_secret(x_backend_secret: Optional[str]):
+def _check_secret(x_backend_secret: str | None):
     if x_backend_secret != BACKEND_SHARED_SECRET:
         raise HTTPException(status_code=401, detail="Invalid or missing backend secret")
 
@@ -53,7 +52,7 @@ def health():
 @app.post("/api/parse-pdf", response_model=ParsePdfResponse)
 async def parse_pdf(
     file: UploadFile = File(...),
-    x_backend_secret: Optional[str] = Header(default=None),
+    x_backend_secret: str | None = Header(default=None),
 ):
     _check_secret(x_backend_secret)
 

@@ -2,7 +2,7 @@
 
 ### College of Engineering Chengannur (CEC) — KTU Examination Cell
 
-> High-concurrency, zero-cost exam seating lookup system built for **College of Engineering Chengannur (CEC)** with the **T3 Stack** (Next.js 15 App Router, tRPC v11, Tailwind CSS, TypeScript) and **Python FastAPI**. Designed to handle **1,000+ concurrent students** with **$0 monthly cost** and **zero risk of unexpected charges**.
+> High-concurrency, zero-cost exam seating lookup system built for **College of Engineering Chengannur (CEC)** with **Next.js 15 App Router** (plain `fetch` REST API routes, TypeScript, Tailwind CSS) and a **Python FastAPI** PDF parser. Designed to handle **1,000+ concurrent students** with **$0 monthly cost** and **zero risk of unexpected charges**.
 
 ---
 
@@ -51,14 +51,14 @@
 
 ## 🛠️ Tech Stack
 
-| Layer          | Technology               | Purpose                                                     |
-| -------------- | ------------------------ | ----------------------------------------------------------- |
-| **Monorepo**   | `pnpm` workspaces        | Clean workspace management (`apps/web` + `services/parser`) |
-| **Frontend**   | Next.js 15 App Router    | React 19, Server Components & Route Handlers                |
-| **API Layer**  | tRPC v11                 | End-to-end type-safe client/server communication            |
-| **Styling**    | Tailwind CSS             | Responsive mobile-first design with `next-themes`           |
-| **Storage**    | `@vercel/blob` (Private) | Private gzipped JSON seating data storage                   |
-| **PDF Parser** | Python 3.14 + FastAPI    | Multi-column KTU PDF extraction with `pdfplumber`           |
+| Layer          | Technology                | Purpose                                                               |
+| -------------- | ------------------------- | --------------------------------------------------------------------- |
+| **Monorepo**   | `pnpm` workspaces         | Clean workspace management (`apps/web` + `services/parser`)           |
+| **Frontend**   | Next.js 15 App Router     | React 19, Server Components & Route Handlers                          |
+| **API Layer**  | Plain `fetch` REST routes | Route handlers + client-side range matching; no client data libraries |
+| **Styling**    | Tailwind CSS              | Responsive mobile-first design with `next-themes`                     |
+| **Storage**    | `@vercel/blob` (Private)  | Private gzipped JSON seating data storage                             |
+| **PDF Parser** | Python 3.14 + FastAPI     | Multi-column KTU PDF extraction with `pdfplumber`                     |
 
 ---
 
@@ -72,12 +72,11 @@ exam-seating/
 ├── ARCHITECTURE.md            # Detailed architectural & scalability breakdown
 ├── CONTEXT.md                 # Domain glossary & seam map
 ├── apps/
-│   └── web/                   # Next.js 15 + tRPC App Router application
+│   └── web/                   # Next.js 15 App Router application
 │       ├── .env.example       # Default environment variables (ADMIN_PASSWORD=CEC2026)
 │       ├── vitest.config.ts   # Test runner configuration
 │       ├── src/
 │       │   ├── app/           # App Router pages & API handlers
-│       │   ├── server/api/    # tRPC routers (admin & seating)
 │       │   ├── lib/           # Deep modules: blob, exam-release, exam-publish,
 │       │   │                  # seating-format, admin-session (with local fallbacks)
 │       │   └── components/    # StudentSearch & ThemeToggle components
@@ -86,6 +85,7 @@ exam-seating/
     └── parser/                # Python FastAPI PDF parser service
         ├── main.py            # FastAPI service endpoints
         ├── pdf_parser.py      # pdfplumber regex extraction engine
+        ├── pyproject.toml     # Ruff lint/format config
         └── requirements.txt
 ```
 
@@ -105,6 +105,9 @@ pnpm install
 
 # Start local Next.js development server
 pnpm dev
+
+# Or run web + parser together
+pnpm dev:all
 ```
 
 Open `http://localhost:3000` to test Student Search, or `http://localhost:3000/admin/login` for Staff Portal (Default Master Password: `CEC2026`).
@@ -116,8 +119,16 @@ Open `http://localhost:3000` to test Student Search, or `http://localhost:3000/a
 ### 2. Optional: Run Local Python Parser Service
 
 ```bash
+# Installs FastAPI + pdfplumber into a virtualenv
 cd services/parser
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
+
+# Optional: ruff (lint/format) — needed for pre-commit hooks and `pnpm lint:python`
+pip install -r requirements-dev.txt
+
+# Start the parser (or run it from the repo root with `pnpm dev:parser`)
 uvicorn main:app --reload --port 8000
 ```
 
@@ -146,6 +157,29 @@ uvicorn main:app --reload --port 8000
 
 ---
 
+## 🔁 Handover: Fork & Redeploy (If Owner Is Unreachable)
+
+This repo is maintained by **sebin-gg**. If CEC staff or students need to operate
+this system and **cannot contact the repository owner**, do not wait — fork and
+redeploy:
+
+1. **Fork** this repository into the CEC org (or any account with access).
+2. **Redeploy web** (`apps/web`) on Vercel — free tier. No code changes needed.
+3. **Redeploy parser** (`services/parser`) on Render or any Python host.
+4. **Set your own secrets** — nothing sensitive is stored in the repo:
+   `ADMIN_PASSWORD`, `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`,
+   `PARSER_SERVICE_URL`, `BACKEND_SHARED_SECRET` (see `.env.example`).
+5. **Set the repo variable `CI_ADMINS`** on the fork so admins keep the
+   `[skip ci]` bypass (see AGENTS.md).
+6. **Republish PDFs** — existing exam blobs live under the original Vercel
+   account and do not carry over. Upload fresh PDFs on the new deployment.
+
+No database or paid service is required; the zero-cost guarantee and local
+fallbacks (`lib/blob.ts` → `.local_data/`) keep working in the fork. MIT
+license permits free institutional reuse.
+
+---
+
 ## 🧪 Verification & Build
 
 ```bash
@@ -155,14 +189,21 @@ pnpm --filter web build
 # Verify Python parser syntax
 python -m py_compile services/parser/main.py services/parser/pdf_parser.py
 
-# Lint, typecheck, and test (also run automatically on every commit via Husky)
+# Lint, typecheck, and test (CI runs these on every push and PR)
 pnpm lint
+pnpm lint:python
 pnpm typecheck
 pnpm test
 pnpm format:check
+pnpm format:check:python
 ```
 
-Pre-commit hooks (Husky + lint-staged) auto-format and lint staged files, then run the full typecheck and test suite.
+Pre-commit hooks (Husky + lint-staged) auto-format and lint staged files (web +
+Python via Ruff). Full typecheck/test/build run in GitHub Actions (`.github/workflows/ci.yml`)
+instead, so commits stay fast. PR titles must follow conventional commits
+(`feat:`, `fix:`, `chore:`, ...) — enforced by the CI `pr-title` check. Admins
+listed in the repo variable `CI_ADMINS` can skip CI with `[skip ci]` in the
+commit message or PR title.
 
 ---
 

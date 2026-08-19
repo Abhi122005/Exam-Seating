@@ -37,7 +37,7 @@ Caveats surfaced to the admin via the API response:
 
 import io
 import re
-from typing import List, Optional, TypedDict
+from typing import TypedDict
 
 import pdfplumber
 
@@ -45,13 +45,13 @@ import pdfplumber
 class ParsedRange(TypedDict):
     roll_from: str
     roll_to: str
-    label: Optional[str]
-    count: Optional[int]
+    label: str | None
+    count: int | None
 
 
 class ParsedRoom(TypedDict):
     room_no: str
-    ranges: List[ParsedRange]
+    ranges: list[ParsedRange]
 
 
 HALL_HEADER_RE = re.compile(r"^Hall\s*:\s*(\S+)", re.IGNORECASE)
@@ -69,7 +69,7 @@ SUBJECT_HEADER_RE = re.compile(
 ROLL_TOKEN_RE = re.compile(r"[A-Za-z]{2,6}\d{2,3}[A-Za-z]{0,3}\d{0,4}")
 
 
-def _reconstruct_lines(page, y_tol: float = 3) -> List[str]:
+def _reconstruct_lines(page, y_tol: float = 3) -> list[str]:
     """
     Group words into text lines by vertical position instead of trusting
     the PDF's own line breaks (which can merge across a line or page
@@ -82,7 +82,7 @@ def _reconstruct_lines(page, y_tol: float = 3) -> List[str]:
 
     words.sort(key=lambda w: (round(w["top"] / y_tol), w["x0"]))
 
-    lines: List[list] = []
+    lines: list[list] = []
     current_key = None
     current: list = []
     for w in words:
@@ -100,11 +100,11 @@ def _reconstruct_lines(page, y_tol: float = 3) -> List[str]:
     return [" ".join(w["text"] for w in ln) for ln in lines]
 
 
-def _parse_hall_allocation_summary(file_bytes: bytes) -> Optional[List[ParsedRoom]]:
+def _parse_hall_allocation_summary(file_bytes: bytes) -> list[ParsedRoom] | None:
     """Returns None if this document doesn't contain a Hall Allocation
     Summary section at all (caller should try the other format instead)."""
-    rooms: List[ParsedRoom] = []
-    current_room: Optional[ParsedRoom] = None
+    rooms: list[ParsedRoom] = []
+    current_room: ParsedRoom | None = None
     found_section = False
 
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
@@ -148,7 +148,7 @@ def _parse_hall_allocation_summary(file_bytes: bytes) -> Optional[List[ParsedRoo
     return rooms if found_section else None
 
 
-def _split_subject_blocks(raw_text: str) -> List[ParsedRange]:
+def _split_subject_blocks(raw_text: str) -> list[ParsedRange]:
     headers = list(SUBJECT_HEADER_RE.finditer(raw_text))
     if not headers:
         rolls = ROLL_TOKEN_RE.findall(raw_text)
@@ -157,7 +157,7 @@ def _split_subject_blocks(raw_text: str) -> List[ParsedRange]:
             for r in rolls
         ]
 
-    ranges: List[ParsedRange] = []
+    ranges: list[ParsedRange] = []
     for i, match in enumerate(headers):
         code = match.group("code").upper()
         start = match.end()
@@ -170,8 +170,8 @@ def _split_subject_blocks(raw_text: str) -> List[ParsedRange]:
     return ranges
 
 
-def _parse_subject_list_tables(file_bytes: bytes) -> List[ParsedRoom]:
-    rooms: List[ParsedRoom] = []
+def _parse_subject_list_tables(file_bytes: bytes) -> list[ParsedRoom]:
+    rooms: list[ParsedRoom] = []
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
         for page in pdf.pages:
             for table in page.extract_tables():
@@ -189,7 +189,7 @@ def _parse_subject_list_tables(file_bytes: bytes) -> List[ParsedRoom]:
     return rooms
 
 
-def parse_seating_pdf(file_bytes: bytes) -> tuple[List[ParsedRoom], str]:
+def parse_seating_pdf(file_bytes: bytes) -> tuple[list[ParsedRoom], str]:
     """
     Returns (rooms, source) where source is "hall_summary" or "subject_list",
     so the caller/admin knows which format was detected.
