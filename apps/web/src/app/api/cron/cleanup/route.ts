@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteExamData, readManifest } from "~/lib/blob";
+import { pruneExpiredExams } from "~/lib/exam-cleanup";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -10,20 +10,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const manifest = await readManifest();
-  const now = Date.now();
-  let updatedCount = 0;
-
-  for (const entry of manifest) {
-    const expiresAt = new Date(entry.expiresAt).getTime();
-    if (now > expiresAt) {
-      await deleteExamData(entry.examId);
-      updatedCount++;
-    }
-  }
+  const { removed } = await pruneExpiredExams();
 
   return NextResponse.json({
     success: true,
-    message: `Cleaned up ${updatedCount} expired exam seating files`,
+    message: `Cleaned up ${removed} expired exam seating files`,
   });
 }

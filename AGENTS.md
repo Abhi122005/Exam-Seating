@@ -62,8 +62,8 @@ pnpm lint && pnpm typecheck && pnpm test
 - **Pre-commit hooks** (Husky + lint-staged): auto-format + eslint-fix staged web files, Ruff fix+format staged `.py` files via `scripts/lint-staged-py.mjs`. Installed automatically by `pnpm install` (husky prepare); reinstall with `pnpm run prepare`. Fast by design — heavy gates (typecheck/test/build) live in CI only. Ruff missing on PATH? The Python hook warns and skips gracefully — install with `pip install -r services/parser/requirements-dev.txt` to enable. Hooked in `.husky/pre-commit` — run `pnpm exec lint-staged` to test.
 - **Formatting:** Prettier (`.prettierrc.json`). Run `pnpm format` to write, `pnpm format:check` to verify. Python formatted with Ruff (`pnpm format:python`).
 - **Linting:** ESLint flat config + `eslint-config-next` (`eslint.config.mjs`). Run `pnpm lint`. Python linted with Ruff (`pnpm lint:python`).
-- **Typecheck:** `pnpm typecheck` (tsc --noEmit). Note: `next.config.mjs` sets `ignoreBuildErrors`, so typecheck is NOT covered by the build.
-- **Tests:** Vitest (`apps/web/src/**/*.test.ts`) covering the release gate, seating compaction, and the gzip storage seam. Run `pnpm test`.
+- **Typecheck:** `pnpm typecheck` (tsc --noEmit). The build type-checks the API/lib layer too (`next build`).
+- **Tests:** Vitest (`apps/web/src/**/*.test.ts` and `apps/web/public/seating.test.ts`) covering the release gate, seating compaction, the gzip storage seam, the client seating module, and exam cleanup. Run `pnpm test`.
 - **Python parser locally:** `pnpm dev:parser` (uvicorn on :8000); `pnpm dev:all` runs web + parser together. Ruff must be on PATH (e.g. parser venv activated with `requirements-dev.txt` installed) for `pnpm lint:python` and pre-commit.
 - Node 24 + pnpm 11 pinned in `packageManager`/`engines` and `.nvmrc` (24); editor defaults in `.editorconfig`.
 

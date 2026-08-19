@@ -3,37 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/icon.svg">
 <title>Exam Seating | KTU Exam Seating Allocation Portal</title>
+<link rel="stylesheet" href="/site.css">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:hsl(0 0% 100%);--fg:hsl(222.2 84% 4.9%);--card:var(--bg);--primary:hsl(221.2 83.2% 53.3%);--pfg:hsl(210 40% 98%);--muted:hsl(210 40% 96.1%);--mfg:hsl(215.4 16.3% 46.9%);--accent:hsl(210 40% 96.1%);--border:hsl(214.3 31.8% 91.4%);--rose:rgb(244 63 94);--amber:rgb(245 158 11);--emerald:rgb(16 185 129)}
-.dark{--bg:hsl(222.2 84% 4.9%);--fg:hsl(210 40% 98%);--primary:hsl(217.2 91.2% 59.8%);--pfg:hsl(222.2 47.4% 11.2%);--muted:hsl(217.2 32.6% 17.5%);--mfg:hsl(215 20.2% 65.1%);--accent:hsl(217.2 32.6% 17.5%);--border:hsl(217.2 32.6% 17.5%)}
-body{color:var(--fg);background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;min-height:100vh;display:flex;flex-direction:column}
-header{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--card) 85%,transparent);backdrop-filter:blur(8px)}
-.hd{max-width:64rem;margin:0 auto;padding:0 1rem;height:3.5rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
-.logo{display:flex;align-items:center;gap:.5rem;font-weight:700;text-decoration:none;color:var(--fg)}
-.logo b{width:1.75rem;height:1.75rem;border-radius:.5rem;background:var(--primary);color:var(--pfg);font-size:.75rem;display:flex;align-items:center;justify-content:center}
-.hd nav{display:flex;align-items:center;gap:.5rem}
-.staff{font-size:.75rem;font-weight:600;color:var(--mfg);text-decoration:none;display:flex;align-items:center;gap:.25rem;padding:.375rem .625rem;border-radius:.5rem}
-.staff:hover{color:var(--fg);background:var(--accent)}
-.tbtn{width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;border-radius:.5rem;border:1px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer}
-.tbtn:hover{background:var(--accent)}
-.i-sun{display:none}.dark .i-sun{display:block}.dark .i-moon{display:none}
-main{flex:1;width:100%;max-width:64rem;margin:0 auto;padding:1rem}
-footer{border-top:1px solid var(--border);padding:1rem;text-align:center;font-size:.75rem;color:var(--mfg)}
 .wrap{max-width:42rem;margin:0 auto}
 .h1{font-size:1.875rem;font-weight:800;letter-spacing:-.025em}
-.muted{color:var(--mfg)}
-.center{text-align:center}
-.mt2{margin-top:1.5rem}
-.badge{display:inline-flex;align-items:center;padding:.125rem .5rem;border-radius:9999px;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
 .b-primary{border:1px solid color-mix(in srgb,var(--primary) 20%,transparent);background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary)}
-.spinner{width:1rem;height:1rem;border:2px solid var(--primary);border-top-color:transparent;border-radius:9999px;animation:spin 1s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:2rem;color:var(--mfg);font-size:.875rem}
-.alert{display:flex;gap:.5rem;align-items:flex-start;padding:.75rem 1rem;border-radius:.75rem;font-size:.75rem}
-.alert>div{flex:1}.alert h3{font-size:.875rem;margin-bottom:.25rem}
-.a-err{border:1px solid color-mix(in srgb,var(--rose) 20%,transparent);background:color-mix(in srgb,var(--rose) 10%,transparent);color:#9f1239}.dark .a-err{color:#fecdd3}
+.alert h3{font-size:.875rem;margin-bottom:.25rem}
 .a-warn{border:1px solid color-mix(in srgb,var(--amber) 20%,transparent);background:color-mix(in srgb,var(--amber) 10%,transparent);color:#78350f}.dark .a-warn{color:#fde68a}
 .a-mut{border:1px solid var(--border);background:var(--muted);color:var(--mfg)}
 .sbox{position:relative}
@@ -45,7 +22,6 @@ footer{border-top:1px solid var(--border);padding:1rem;text-align:center;font-si
 .rhead{display:flex;justify-content:space-between;align-items:center;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#059669}.dark .rhead{color:#34d399}
 .room{font-size:3rem;font-weight:900;letter-spacing:-.025em;color:#059669;text-align:center;margin-top:.25rem;line-height:1.2}.dark .room{color:#34d399}
 .rfoot{border-top:1px solid color-mix(in srgb,var(--emerald) 20%,transparent);margin-top:1rem;padding-top:.75rem;font-size:.75rem;color:var(--mfg);display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 @media(max-width:640px){.room{font-size:2.5rem}}
 </style>
 <script>try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
@@ -60,59 +36,44 @@ footer{border-top:1px solid var(--border);padding:1rem;text-align:center;font-si
 <div id="content" class="mt2"></div>
 </div></main>
 <footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
-<script>
+<script type="module">
+import{esc,findSeat,runSeatingApp}from'/seating.js';
 document.getElementById('tbtn').onclick=function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light')};
-var id=new URLSearchParams(location.search).get('id'),content=document.getElementById('content'),timer=null,rooms=[],lookup=null;
-var esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var id=new URLSearchParams(location.search).get('id'),content=document.getElementById('content'),payload=null;
 var ic=function(p){return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>'};
-var I={clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',alert:'<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',refresh:'<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'};
+var I={clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',alert:'<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'};
 if(!id){content.innerHTML='<div class="alert a-err">'+ic(I.alert)+'<div>Missing exam id in the link. Please use the link provided by your exam cell.</div></div>'}
 else{
   content.innerHTML='<div class="loading"><span class="spinner"></span>Loading seating data...</div>';
-  load();
-}
-function buildLookup(){
-  lookup=new Map();
-  rooms.forEach(function(room){var r=room.rolls||{};Object.keys(r).forEach(function(label){r[label].split(',').forEach(function(roll){lookup.set(roll.toUpperCase(),{roomNo:room.room_no,label:label||'General Batch'})})})});
-}
-function load(){
-  fetch('/api/seating/'+encodeURIComponent(id)).then(function(res){
-    return res.json().then(function(d){return{ok:res.ok,d:d}});
-  }).then(function(x){
-    if(!x.ok||x.d.error)throw new Error('notfound');
-    render(x.d);
-    if(x.d.status==='scheduled')timer=setTimeout(load,30000);
-  }).catch(function(e){
-    if(e.message==='notfound'){content.innerHTML='<div class="alert a-err">'+ic(I.alert)+'<div>Exam not found. It may have been removed or the link is incorrect.</div></div>';return}
-    content.innerHTML='<div class="loading"><span class="spinner"></span>Retrying connection...</div>';
-    timer=setTimeout(load,30000);
+  runSeatingApp({
+    examId:id,
+    onPayload:function(d){
+      payload=d;
+      document.title=(d.title||'Exam Seating')+' | KTU Exam Seating';
+      document.getElementById('title').textContent=d.title||'Exam Seating';
+      document.getElementById('session').textContent='Session: '+(d.session||'Morning');
+    },
+    onStatus:function(status){
+      if(status==='scheduled')content.innerHTML='<div class="alert a-warn">'+ic(I.clock)+'<div><h3>Seating Not Released Yet</h3>Seating allocation for this slot will be released at <b>'+esc(new Date(payload.publishAt).toLocaleString())+'</b>.<br><span class="muted">This page updates automatically when the release goes live.</span></div></div>';
+      else if(status==='expired')content.innerHTML='<div class="alert a-mut">'+ic(I.alert)+'<div><h3>Seating Link Expired</h3>This seating arrangement release window has closed and data has been safely cleared.</div></div>';
+      else{
+        content.innerHTML='<form id="form" class="sbox"><input id="roll" class="sinp" type="text" placeholder="Enter Roll / Reg No (e.g. CS24C08)" required maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="find" class="find" type="submit" disabled>'+ic(I.search)+'Find Seat</button></form><div id="result" class="mt2"></div>';
+        var inp=document.getElementById('roll'),find=document.getElementById('find');
+        inp.oninput=function(){find.disabled=!inp.value.trim();document.getElementById('result').innerHTML=''};
+        document.getElementById('form').onsubmit=search;
+      }
+    },
+    onError:function(kind){
+      if(kind==='notfound'){content.innerHTML='<div class="alert a-err">'+ic(I.alert)+'<div>Exam not found. It may have been removed or the link is incorrect.</div></div>';return}
+      content.innerHTML='<div class="loading"><span class="spinner"></span>Retrying connection...</div>';
+    }
   });
-}
-function render(d){
-  rooms=d.rooms||[];buildLookup();
-  document.title=(d.title||'Exam Seating')+' | KTU Exam Seating';
-  document.getElementById('title').textContent=d.title||'Exam Seating';
-  document.getElementById('session').textContent='Session: '+(d.session||'Morning');
-  if(d.status==='scheduled'){
-    content.innerHTML='<div class="alert a-warn">'+ic(I.clock)+'<div><h3>Seating Not Released Yet</h3>Seating allocation for this slot will be released at <b>'+esc(new Date(d.publishAt).toLocaleString())+'</b>.<br><span class="muted">This page updates automatically when the release goes live.</span></div></div>';
-  }else if(d.status==='expired'){
-    content.innerHTML='<div class="alert a-mut">'+ic(I.alert)+'<div><h3>Seating Link Expired</h3>This seating arrangement release window has closed and data has been safely cleared.</div></div>';
-  }else{
-    content.innerHTML='<form id="form" class="sbox"><input id="roll" class="sinp" type="text" placeholder="Enter Roll / Reg No (e.g. CS24C08)" required maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="find" class="find" type="submit" disabled>'+ic(I.search)+'Find Seat</button></form><div id="result" class="mt2"></div>';
-    var inp=document.getElementById('roll'),find=document.getElementById('find');
-    inp.oninput=function(){find.disabled=!inp.value.trim();document.getElementById('result').innerHTML=''};
-    document.getElementById('form').onsubmit=search;
-  }
 }
 function search(e){
   e.preventDefault();
   var q=document.getElementById('roll').value.trim().toUpperCase();if(!q)return;
-  var hit=lookup.get(q),out=null;
-  if(hit)out={found:true,room_no:hit.roomNo,label:hit.label};
-  else rooms.some(function(room){return room.ranges.some(function(rg){var f=rg.roll_from.toUpperCase(),t=rg.roll_to.toUpperCase();if(q>=f&&q<=t){out={found:true,room_no:room.room_no,label:rg.label||'General Batch',roll_from:rg.roll_from,roll_to:rg.roll_to};return true}return false})});
-  if(!out)out={found:false};
-  var r=document.getElementById('result');
-  if(out.found){
+  var out=findSeat(payload,q),r=document.getElementById('result');
+  if(out){
     r.innerHTML='<div class="result"><div class="rhead"><span>Seat Allocated</span>'+ic(I.pin)+'</div><div class="center"><div class="muted" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600">Room Number</div><div class="room">'+esc(out.room_no)+'</div></div><div class="rfoot"><span>'+ic(I.book)+' '+esc(out.label)+'</span>'+(out.roll_from&&out.roll_to?'<span class="mono">Range: '+esc(out.roll_from)+' - '+esc(out.roll_to)+'</span>':'')+'</div></div>';
   }else{
     r.innerHTML='<div class="alert a-err">'+ic(I.alert)+'<div>No seat matching <b>'+esc(q)+'</b> found in this session.</div></div>';

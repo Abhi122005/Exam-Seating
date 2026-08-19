@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "~/lib/auth";
-import { deleteExamData, readManifest, writeManifest } from "~/lib/blob";
+import { removeExam } from "~/lib/exam-cleanup";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ examId: string }> }) {
   const isAdmin = await isAdminAuthenticated();
@@ -9,11 +9,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ examId
   }
 
   const { examId } = await params;
-
-  await deleteExamData(examId);
-  const manifest = await readManifest();
-  const nextManifest = manifest.filter((e) => e.examId !== examId);
-  await writeManifest(nextManifest);
+  await removeExam(examId);
 
   return NextResponse.json({ success: true });
 }
