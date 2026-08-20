@@ -6,21 +6,6 @@
 <meta name="description" content="Instant exam hall seating lookup for students and staff">
 <title>Exam Seating Allocation Portal</title>
 <link rel="stylesheet" href="/site.css">
-<style>
-.hero{text-align:center;margin-top:2rem}
-.hero h1{font-size:2.6rem}
-.hero .sub{color:var(--mfg);font-size:1.05rem;margin:12px 0 8px}
-.list{display:grid;gap:14px;margin-top:2rem}
-.exam-card{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 1.25rem;background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:16px;color:var(--fg);transition:border-color .15s,transform .15s;box-shadow:0 10px 30px -12px rgba(0,0,0,.4)}
-.exam-card:hover{border-color:rgba(139,92,246,.5);transform:translateY(-1px)}
-.etitle{display:flex;align-items:center;gap:.6rem;font-weight:700;flex-wrap:wrap}
-.emeta{display:flex;align-items:center;gap:1rem;font-size:.78rem;color:var(--mfg);margin-top:.4rem;flex-wrap:wrap}
-.earrow{color:var(--dim);transition:transform .15s,color .15s}
-.exam-card:hover .earrow{color:var(--lilac);transform:translateX(2px)}
-.empty{text-align:center;color:var(--mfg)}
-.empty h3{color:var(--fg);margin-bottom:.4rem}
-@media(max-width:640px){.hero h1{font-size:2rem}}
-</style>
 </head>
 <body>
 <nav class="nav"><a class="brand" href="/"><b>KTU</b>Exam Seating</a><div class="links"><a class="lnk" href="/admin/login">Staff Portal</a></div></nav>
@@ -29,7 +14,7 @@
 <div class="hero">
 <h1>Exam Seating Allocation</h1>
 <p class="sub">Instant, real-time exam hall seating lookup — select your session below.</p>
-<p class="hint" style="margin-top:10px">Students scan the QR code published by staff to jump straight to their exam.</p>
+<p class="hint landing-help">Students scan the QR code published by staff to jump straight to their exam.</p>
 </div>
 <div id="list" class="list"></div>
 </div>

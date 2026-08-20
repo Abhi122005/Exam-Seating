@@ -6,40 +6,10 @@
 <meta name="description" content="Look up your designated examination room by roll number">
 <title>Exam Seating Lookup</title>
 <link rel="stylesheet" href="/site.css">
-<style>
-.g-card{width:100%;max-width:640px;margin:0 auto;background:rgba(15,23,42,.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:40px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5),0 0 40px rgba(124,58,237,.15);position:relative;overflow:hidden}
-.g-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#7c3aed,#06b6d4,#3b82f6)}
-.g-header{text-align:center;margin-bottom:32px}
-.g-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,.15);border:1px solid rgba(139,92,246,.3);color:#c084fc;padding:6px 14px;border-radius:9999px;font-size:.8rem;font-weight:600;margin-bottom:16px}
-.g-dot{width:8px;height:8px;border-radius:50%;background:#a855f7;box-shadow:0 0 8px #a855f7;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.g-title{font-size:2rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#fff 0%,#cbd5e1 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 10px}
-.g-subtitle{color:#94a3b8;font-size:.95rem}
-.g-box{background:rgba(30,41,59,.5);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;text-align:center;margin-bottom:28px}
-.g-box .cap{font-size:.8rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em}
-.g-timer{font-size:2.4rem;font-weight:800;letter-spacing:.04em;color:#38bdf8;margin:8px 0;text-shadow:0 0 20px rgba(56,189,248,.4)}
-.g-box.expired .cap{color:#f87171}
-.g-box.expired h3{color:#94a3b8;font-size:1.2rem;margin:8px 0}
-.g-form{margin-top:24px}
-.g-wrap{position:relative;display:flex;align-items:center}
-.g-input{width:100%;background:rgba(15,23,42,.8);border:1.5px solid rgba(255,255,255,.15);color:#fff;font-size:1.1rem;padding:16px 140px 16px 20px;border-radius:14px;outline:none;transition:all .25s}
-.g-input:focus{border-color:#8b5cf6;box-shadow:0 0 0 4px rgba(139,92,246,.2),0 0 20px rgba(139,92,246,.25);background:rgba(15,23,42,.95)}
-.g-btn{position:absolute;right:8px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;font-weight:700;font-size:.95rem;padding:10px 22px;border-radius:10px;cursor:pointer;transition:all .2s}
-.g-btn:hover{opacity:.95;transform:translateY(-1px);box-shadow:0 6px 16px rgba(124,58,237,.4)}
-.g-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.g-result{margin-top:24px;background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(6,182,212,.15) 100%);border:1px solid rgba(52,211,153,.3);border-radius:16px;padding:24px;text-align:center;animation:fadein .3s ease}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.g-result .lbl{font-size:.85rem;color:#6ee7b7;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
-.g-room{font-size:3rem;font-weight:800;color:#fff;margin:6px 0 14px;letter-spacing:.02em;text-shadow:0 0 25px rgba(52,211,153,.5)}
-.g-copy{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;transition:background .2s}
-.g-copy:hover{background:rgba(255,255,255,.2)}
-.g-err{margin-top:14px;color:#f87171;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);padding:10px 16px;border-radius:10px;font-size:.9rem;text-align:center}
-@media(max-width:640px){.g-card{padding:28px 20px}.g-title{font-size:1.6rem}.g-input{padding-right:20px;font-size:1rem}.g-btn{position:static;width:100%;margin-top:10px}}
-</style>
 </head>
 <body>
 <main>
-<div class="page" style="display:flex;justify-content:center">
+<div class="page page-center-flex">
 <div class="g-card">
 <div class="g-header">
 <div class="g-badge"><span class="g-dot"></span><span id="session">LOADING SESSION...</span></div>
@@ -86,7 +56,7 @@ function search(e){
   var q=document.getElementById('roll').value.trim().toUpperCase();if(!q)return;
   var out=findSeat(payload,q),r=document.getElementById('result');
   if(out){
-    r.innerHTML='<div class="g-result"><div class="lbl">Your Assigned Exam Room</div><div class="g-room">'+esc(out.room_no)+'</div><button type="button" class="g-copy" id="copy">Copy Room Number</button>'+(out.label?('<div class="hint" style="margin-top:10px">'+esc(out.label)+'</div>'):'')+'</div>';
+    r.innerHTML='<div class="g-result"><div class="lbl">Your Assigned Exam Room</div><div class="g-room">'+esc(out.room_no)+'</div><button type="button" class="g-copy" id="copy">Copy Room Number</button>'+(out.label?('<div class="hint result-label">'+esc(out.label)+'</div>'):'')+'</div>';
     document.getElementById('copy').onclick=function(){
       navigator.clipboard?.writeText(out.room_no);
       var b=this;b.textContent='\u2713 Copied to Clipboard';

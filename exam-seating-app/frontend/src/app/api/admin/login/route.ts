@@ -6,8 +6,9 @@ import {
   getAdminCookieOptions,
   issueSessionToken,
 } from "~/lib/auth";
+import { withRouteLogging } from "~/lib/route-log";
 
-export async function POST(req: Request) {
+export const POST = withRouteLogging("POST /api/admin/login", async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const password = typeof body?.password === "string" ? body.password : "";
 
@@ -22,4 +23,4 @@ export async function POST(req: Request) {
   cookieStore.set(ADMIN_COOKIE_NAME, issueSessionToken(), getAdminCookieOptions());
 
   return NextResponse.json({ success: true });
-}
+});

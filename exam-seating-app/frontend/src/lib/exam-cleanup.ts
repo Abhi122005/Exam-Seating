@@ -1,4 +1,10 @@
-import { deleteExamData, readExamData, readManifest, writeExamData, writeManifest } from "~/lib/blob";
+import {
+  deleteExamData,
+  readExamData,
+  readManifest,
+  writeExamData,
+  writeManifest,
+} from "~/lib/blob";
 
 export const RELEASE_WINDOW_MS = 5 * 60 * 60 * 1000;
 

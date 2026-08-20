@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "~/lib/auth";
 import { publishExam } from "~/lib/exam-publish";
+import { withRouteLogging } from "~/lib/route-log";
 
-export async function POST(req: Request) {
+export const POST = withRouteLogging("POST /api/admin/publish", async function POST(req: Request) {
   const isAdmin = await isAdminAuthenticated();
   if (!isAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -35,4 +36,4 @@ export async function POST(req: Request) {
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to process PDF" }, { status: 500 });
   }
-}
+});

@@ -5,7 +5,7 @@ describe("qr module", () => {
   it("generates an SVG with dark modules", () => {
     const svg = qrSvg("https://example.com/exam?id=123");
     expect(svg.startsWith("<svg xmlns=")).toBe(true);
-    expect(svg).toContain("shape-rendering=\"crispEdges\"");
+    expect(svg).toContain('shape-rendering="crispEdges"');
     expect(svg).toContain("<rect ");
     expect(svg).toContain("viewBox=");
   });

@@ -46,33 +46,30 @@ Env vars (`frontend/.env.example`): `ADMIN_PASSWORD` (default `CEC2026`), `PARSE
 
 | Page | Total raw | Gzip |
 |---|---|---|
-| `/` | 13,671 B | 5.1 KB |
-| `/exam?id=` | **17,693 B** ⚠️ | 6.5 KB |
-| `/admin/login` | 9,145 B | 3.6 KB |
-| `/admin/schedule` | 12,267 B | 4.6 KB |
-| `/admin/upload` | 12,100 B | 4.5 KB |
+| `/` | 2,852 B | 1.24 KB |
+| `/exam?id=` | 4,342 B | 1.75 KB |
+| `/admin/login` | 2,442 B | 1.21 KB |
+| `/admin/schedule` | 5,155 B | 2.03 KB |
+| `/admin/upload` | 4,987 B | 1.96 KB |
 
-Budget: page HTML < 14 KB (all pass); combined HTML+CSS+JS ~14.6 KB (exam page over).
+Shared assets: `site.css` = 16,441 B raw / 3.66 KB gzip; `seating.js` = 3,541 B raw / 1.21 KB gzip. Public pages load both; admin pages load `site.css` only. All HTML pages remain below the 14 KB raw budget.
 
 ## Recommended next tasks
 
-1. **Trim `site.css` (6,374 B vs 3,755 B in iedc reference).** Every page pays this file — biggest lever. Dedupe overlapping rules, drop unused. Save ~1.5–2 KB/page, pulls exam page under combined budget.
-2. **Dedupe `/exam` inline `<style>` (≈2.5 KB)** — restates shared classes already in `site.css`; keep only true deltas (~1 KB saving).
-3. Optional micro-wins: 3 inline SVG icons on landing page (~600 B); admin/login inlines own `esc()` (60 B) — can import from `/seating.js`.
-4. **No staff-only preloads on public pages** — verify `/`, `/exam` never fetch `/api/admin/*`, never load admin JS/CSS, and vice versa. Currently true; keep it true. Public pages ship only what students need (seating.js + site.css + own inline styles).
+All recommended tasks are complete. Inline and embedded page styles now live in `site.css`; page-size checks pass, public pages do not call admin APIs, and the existing pure `src/lib` boundaries remain unchanged.
 
-## DX improvements (worthwhile, none done yet)
+## DX improvements
 
-1. **CI pipeline** — lift `.github/workflows/ci.yml` from iedc repo (seating arrangement): lint, typecheck, test, `next build`, page-size check, PR title convention. Repo has zero CI today.
-2. **Page-size guard** — small script (node) asserting every page (HTML+CSS+JS) < 14 KB raw; wire into CI + `pre-commit`. Catches budget drift before it happens.
-3. **Pre-commit hooks** — husky + lint-staged, as in iedc: prettier+eslint-fix staged web files, ruff fix+format staged `.py`. `pnpm install` already installs husky prepare only if package.json declares it.
-4. **Prettier + ESLint** — no config exists (`eslint.config.mjs`, `.prettierrc.json` missing). Copy iedc setup verbatim. **Must** add `apps/web/public/**/*.html` (here: `public/**/*.html`) to `.prettierignore` — prettier inflates HTML 40–60%, blows budget.
-5. **Package.json scripts + metadata** — add `typecheck`, `lint`, `format`, `dev:parser`, `dev:all` scripts mirroring iedc; add `engines` (node 24) + `packageManager` (pnpm@11.21.0) fields; `.nvmrc` + `.editorconfig`.
-6. **Parser lint** — backend has no Ruff config; add `pyproject.toml` (ruff), `requirements-dev.txt`, `pnpm lint:python` / `format:python`.
-7. **Committed E2E smoke script** — `scripts/smoke.mjs`: boot `next start`, curl every route (login 401/200, publish+mock fallback, gate, postpone, delete, cron, QR), assert statuses, kill server. Proven approach from conversion; only exists as throwaway PS1 now.
-8. **Structured logs in API routes** — one `console.warn` in publish fallback exists; add consistent `{ route, status, ms }` logging to admin routes for free observability on Vercel.
-9. **GitHub issue/PR templates** — 3 small files; helps external contributors (repo is public).
-10. **Keep `src/lib` seams pure** — blob/exam-release/exam-publish already testable via injected adapters; new features must keep storage/time checks behind these modules, not inline in routes.
+1. CI pipeline: `.github/workflows/ci.yml` runs frontend quality gates and backend Ruff.
+2. Page-size guard: `pnpm page-size` enforces the 14 KB raw HTML budget.
+3. Pre-commit hooks: Husky and lint-staged run ESLint/Prettier and Ruff.
+4. Prettier and ESLint configs are committed; public HTML/JS stays excluded from formatting.
+5. Package scripts, Node/pnpm metadata, `.nvmrc`, and `.editorconfig` are committed.
+6. Ruff config and development requirements are committed for the parser.
+7. `pnpm smoke` checks public routes, 404s, QR, unauthorized admin access, and login/session flow.
+8. Admin and cleanup routes emit structured `{ route, status, ms }` logs.
+9. GitHub issue and pull-request templates are committed.
+10. Storage and release logic remains behind the existing testable `src/lib` seams.
 
 ## Conventions (keep)
 
@@ -89,4 +86,4 @@ Budget: page HTML < 14 KB (all pass); combined HTML+CSS+JS ~14.6 KB (exam page o
 - Vercel: root directory `frontend`, env vars from `.env.example`. Blob store must be **private**.
 - Render: `backend/` (uvicorn), `BACKEND_SHARED_SECRET` must match frontend.
 - Cron: free external scheduler (cron-job.org) → `GET /api/cron/cleanup` with Bearer `CRON_SECRET`, every 15 min.
-- CI not set up in this repo yet (iedc repo has `.github/workflows/ci.yml` — lift it if desired).
+- CI is configured in `.github/workflows/ci.yml`.
