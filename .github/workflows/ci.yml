@@ -18,7 +18,7 @@ jobs:
   # GitHub usernames, e.g. `sebin-gg`). Non-admins cannot skip; empty or missing
   # CI_ADMINS means nobody can bypass.
   decide:
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubuntu-latest
     outputs:
       should-run: ${{ steps.decide.outputs.should-run }}
     steps:
@@ -46,7 +46,7 @@ jobs:
     name: PR Title Convention
     needs: decide
     if: github.event_name == 'pull_request' && needs.decide.outputs.should-run == 'true'
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check conventional commit prefix
         env:
@@ -62,7 +62,7 @@ jobs:
     name: Lint / Typecheck / Test / Build
     needs: decide
     if: needs.decide.outputs.should-run == 'true'
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       # Version comes from the packageManager field in package.json (pnpm@11.21.0)
