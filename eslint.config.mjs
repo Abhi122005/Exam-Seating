@@ -7,7 +7,7 @@ const compat = new FlatCompat({ baseDirectory: __dirname });
 
 export default [
   {
-    ignores: ["**/node_modules/**", "**/.next/**", "**/.local_data/**", "**/.husky/**"],
+    ignores: ["**/node_modules/**", "**/.next/**", "**/.local_data/**", "**/.husky/**", "apps/web/public/polyfill.min.js"],
   },
   ...compat.extends("next/core-web-vitals"),
   {

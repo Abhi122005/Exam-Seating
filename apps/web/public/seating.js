@@ -3,7 +3,7 @@
  * @returns {string}
  */
 export const esc = (s) =>
-  String(s ?? "").replace(
+  String(s || "").replace(
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
   );
@@ -14,20 +14,20 @@ export const esc = (s) =>
  * @returns {{ room_no: string; label: string; roll_from?: string; roll_to?: string } | undefined}
  */
 export function findSeat(payload, roll) {
-  const q = String(roll ?? "")
+  const q = String(roll || "")
     .trim()
     .toUpperCase();
   if (!q) return undefined;
-  const rooms = payload.rooms ?? [];
+  const rooms = payload.rooms || [];
   for (const room of rooms) {
-    for (const [label, list] of Object.entries(room.rolls ?? {})) {
+    for (const [label, list] of Object.entries(room.rolls || {})) {
       if (list.toUpperCase().split(",").includes(q)) {
         return { room_no: room.room_no, label: label || "General Batch" };
       }
     }
   }
   for (const room of rooms) {
-    for (const rg of room.ranges ?? []) {
+    for (const rg of room.ranges || []) {
       const f = String(rg.roll_from).toUpperCase();
       const t = String(rg.roll_to).toUpperCase();
       if (q >= f && q <= t) {
