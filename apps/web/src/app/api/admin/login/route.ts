@@ -8,7 +8,7 @@ import {
 } from "~/lib/admin-session"; // In-memory rate limiter: 50 failed attempts per IP per 15 minutes.
 // Liberal by design — never block a real user. Successful logins don't count.
 const failedAttempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_FAILED = 50;
+const MAX_FAILED = 100;
 const WINDOW_MS = 15 * 60 * 1000;
 
 function getClientIp(req: Request): string {
