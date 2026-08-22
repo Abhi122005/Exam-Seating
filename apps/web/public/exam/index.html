@@ -24,7 +24,7 @@
 .rfoot{border-top:1px solid color-mix(in srgb,var(--emerald) 20%,transparent);margin-top:1rem;padding-top:.75rem;font-size:.75rem;color:var(--mfg);display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap}
 @media(max-width:640px){.room{font-size:2.5rem}}
 </style>
-<script>try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
+<script src="/theme.js"></script>
 </head>
 <body>
 <header><div class="hd"><a class="logo" href="/"><b>KTU</b>Exam Seating</a><nav><a class="staff" href="/admin/login"><svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Staff Portal</a><button class="tbtn" id="tbtn" aria-label="Toggle theme"><svg class="ic i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="ic i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button></nav></div></header>
@@ -39,7 +39,6 @@
 <script type="module">
 import{esc}from'/esc.js';
 import{findSeat,runSeatingApp}from'/seating.js';
-document.getElementById('tbtn').onclick=function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light')};
 var id=new URLSearchParams(location.search).get('id'),content=document.getElementById('content'),payload=null;
 var ic=function(p){return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>'};
 var I={clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',alert:'<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'};
