@@ -15,7 +15,7 @@ concurrency:
 jobs:
   # Admin bypass: a commit message or PR title containing `[skip ci]` skips CI,
   # but ONLY for admins listed in the repo variable CI_ADMINS (comma-separated
-  # GitHub usernames, e.g. `sebin-gg`). Non-admins cannot skip; empty or missing
+  # GitHub usernames, e.g. `Abhi122005`). Non-admins cannot skip; empty or missing
   # CI_ADMINS means nobody can bypass.
   decide:
     runs-on: ubuntu-latest

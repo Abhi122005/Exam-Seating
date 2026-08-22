@@ -97,8 +97,8 @@ exam-seating/
 
 ```bash
 # Clone the repository
-git clone https://github.com/sebin-gg/iedc-web-management-cell-task1.git
-cd iedc-web-management-cell-task1
+git clone https://github.com/Abhi122005/Exam-Seating.git
+cd Exam-Seating
 
 # Install dependencies
 # pnpm install also installs the pre-commit hooks automatically (via husky)
@@ -170,7 +170,7 @@ uvicorn main:app --reload --port 8000
 
 ## 🔁 Handover: Fork & Redeploy (If Owner Is Unreachable)
 
-This repo is maintained by **sebin-gg**. If CEC staff or students need to operate
+This repo is maintained by **Abhi122005** (originally developed by **sebin-gg**). If CEC staff or students need to operate
 this system and **cannot contact the repository owner**, do not wait — fork and
 redeploy:
 
