@@ -22,7 +22,7 @@ This file contains guidelines, architectural rules, and project patterns for AI 
 
 1. **Zero Database Cost Guarantee:**
    - DO NOT introduce a database (Postgres, Prisma, Supabase, Redis) to this project.
-   - Authentication MUST remain master-password HTTP-only session cookie (`lib/auth.ts`).
+   - Authentication MUST remain master-password HTTP-only session cookie (`lib/admin-session.ts`).
    - Seating data MUST remain stored in private Vercel Blobs or local filesystem fallback (`lib/blob.ts`).
 
 2. **Dual-Mode Local Fallbacks:**
