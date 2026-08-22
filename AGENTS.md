@@ -78,7 +78,7 @@ pnpm lint && pnpm typecheck && pnpm --filter web lint:boundaries && pnpm test
 
 ## 🔁 Handover (Owner Unreachable)
 
-Repo owner is **sebin-gg**. If a CEC maintainer cannot reach the owner, **fork
+Repo owner is **Abhi122005** (originally **sebin-gg** — migrated 2026-08-22, see `docs/adr/0003-migrate-to-exam-seating.md`). If a CEC maintainer cannot reach the owner, **fork
 this repository and redeploy** — do not wait for access:
 
 - Fork → redeploy `apps/web` on Vercel, `services/parser` on Render (or any host).
