@@ -51,9 +51,15 @@ pnpm --filter web build
 python -m py_compile services/parser/main.py services/parser/pdf_parser.py
 pnpm lint:python
 
-# 3. Run the full gate (lint, typecheck, test) before pushing
-pnpm lint && pnpm typecheck && pnpm test
+# 3. Run the full gate (lint, typecheck, boundaries, test) before pushing
+pnpm lint && pnpm typecheck && pnpm --filter web lint:boundaries && pnpm test
 ```
+
+## 📦 Module Boundaries
+
+`src/lib/` modules are deep modules — each `.ts` file is an entry point; subfolders (if added later) are private. Route handlers import only through entry points. Enforced by `pnpm lint:boundaries` (dependency-cruiser). See [src/lib/README.md](./apps/web/src/lib/README.md).
+
+---
 
 ## 🧰 DX Tooling
 
