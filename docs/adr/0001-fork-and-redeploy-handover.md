@@ -1,13 +1,13 @@
 # ADR-0001: Fork-and-Redeploy Handover for CEC Maintainers
 
-- **Status:** Accepted (amended 2026-08-22 — owner migrated to Abhi122005, see ADR-0003)
+- **Status:** Accepted
 - **Date:** 2026-08-19
-- **Owner:** Abhi122005 (originally sebin-gg)
+- **Owner:** Abhi122005
 
 ## Context
 
 The exam seating portal serves College of Engineering Chengannur (CEC). The
-repository owner (`Abhi122005`, originally `sebin-gg` — migrated 2026-08-22) is a single individual. A future CEC maintainer
+repository owner (`Abhi122005`) is a single individual. A future CEC maintainer
 (student or staff) may need to operate, fix, or deploy the system when the
 owner is unreachable. Waiting for access blocks exam-day operations.
 
