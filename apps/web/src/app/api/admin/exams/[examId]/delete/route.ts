@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "~/lib/auth";
+import { isAdminAuthenticated } from "~/lib/admin-session";
 import { removeExam } from "~/lib/exam-cleanup";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ examId: string }> }) {

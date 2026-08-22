@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "~/lib/auth";
+import { isAdminAuthenticated } from "~/lib/admin-session";
 import { readManifest } from "~/lib/blob";
 
 export async function GET() {

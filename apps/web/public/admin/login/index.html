@@ -36,10 +36,10 @@
 </form>
 </div></main>
 <footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
-<script>
+<script type="module">
+import{esc}from'/esc.js';
 document.getElementById('tbtn').onclick=function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light')};
 fetch('/api/admin/manifest').then(function(r){if(r.ok)location.replace('/admin/schedule')}).catch(function(){});
-var esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 document.getElementById('form').onsubmit=function(e){
   e.preventDefault();
   var pw=document.getElementById('pw'),btn=document.getElementById('btn'),err=document.getElementById('err');

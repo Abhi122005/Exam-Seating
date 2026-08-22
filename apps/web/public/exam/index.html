@@ -37,7 +37,8 @@
 </div></main>
 <footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
 <script type="module">
-import{esc,findSeat,runSeatingApp}from'/seating.js';
+import{esc}from'/esc.js';
+import{findSeat,runSeatingApp}from'/seating.js';
 document.getElementById('tbtn').onclick=function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light')};
 var id=new URLSearchParams(location.search).get('id'),content=document.getElementById('content'),payload=null;
 var ic=function(p){return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>'};

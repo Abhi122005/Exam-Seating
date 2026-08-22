@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "~/lib/auth";
+import { isAdminAuthenticated } from "~/lib/admin-session";
 import { publishExam } from "~/lib/exam-publish";
 
 export async function POST(req: Request) {
@@ -26,7 +26,8 @@ export async function POST(req: Request) {
       success: true,
       ...result,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to process PDF" }, { status: 500 });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to process PDF";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

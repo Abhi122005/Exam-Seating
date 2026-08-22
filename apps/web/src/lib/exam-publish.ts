@@ -73,9 +73,10 @@ export async function parseRoomsWithService(file: File): Promise<ParsedSeating> 
       rooms: parsedData.rooms || [],
       warning: parsedData.warning,
     };
-  } catch (parserErr: any) {
+  } catch (parserErr: unknown) {
     // Local testing fallback when Python parser service is offline or unreachable
-    console.warn("Python parser unreachable, using local fallback parser:", parserErr.message);
+    const msg = parserErr instanceof Error ? parserErr.message : String(parserErr);
+    console.warn("Python parser unreachable, using local fallback parser:", msg);
     return {
       warning: "Python parser service unreachable. Used local development fallback seating rooms.",
       rooms: mockRooms,

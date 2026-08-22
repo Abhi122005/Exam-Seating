@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { cookies } from "next/headers";
 
 export const ADMIN_COOKIE_NAME = "admin_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24;
@@ -10,28 +11,56 @@ function adminPassword(): string {
   return process.env.ADMIN_PASSWORD || "CEC2026";
 }
 
-function signSession(nonce: Buffer): Buffer {
-  return crypto.createHmac("sha256", adminPassword()).update(nonce).digest();
+function signSession(payload: Buffer): Buffer {
+  return crypto.createHmac("sha256", adminPassword()).update(payload).digest();
 }
 
 export function issueSessionToken(): string {
+  const ts = Math.floor(Date.now() / 1000);
   const nonce = crypto.randomBytes(SESSION_NONCE_BYTES);
-  const sig = signSession(nonce);
-  return `${nonce.toString("base64url")}.${sig.toString("base64url")}`;
+  const payload = Buffer.alloc(4 + SESSION_NONCE_BYTES);
+  payload.writeUInt32BE(ts, 0);
+  nonce.copy(payload, 4);
+  const sig = signSession(payload);
+  return `${payload.toString("base64url")}.${sig.toString("base64url")}`;
 }
 
 export function verifySessionToken(token: string | undefined | null): boolean {
   if (!token) return false;
-  const [nonceB64, sigB64] = token.split(".");
-  if (!nonceB64 || !sigB64) return false;
-  const nonce = Buffer.from(nonceB64, "base64url");
+  const [payloadB64, sigB64] = token.split(".");
+  if (!payloadB64 || !sigB64) return false;
+  const payload = Buffer.from(payloadB64, "base64url");
   const sig = Buffer.from(sigB64, "base64url");
-  if (nonce.length !== SESSION_NONCE_BYTES || sig.length !== SESSION_SIG_BYTES) return false;
-  return crypto.timingSafeEqual(sig, signSession(nonce));
+  if (payload.length !== 4 + SESSION_NONCE_BYTES || sig.length !== SESSION_SIG_BYTES) return false;
+  if (!crypto.timingSafeEqual(sig, signSession(payload))) return false;
+  const ts = payload.readUInt32BE(0);
+  const now = Math.floor(Date.now() / 1000);
+  return now - ts < SESSION_MAX_AGE;
 }
 
 export function checkAdminPassword(password: string): boolean {
   const a = Buffer.from(password);
   const b = Buffer.from(adminPassword());
   return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+export function getAdminCookieOptions(): {
+  httpOnly: boolean;
+  sameSite: "lax";
+  secure: boolean;
+  path: string;
+  maxAge: number;
+} {
+  return {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_MAX_AGE,
+  };
+}
+
+export async function isAdminAuthenticated(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return verifySessionToken(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 }

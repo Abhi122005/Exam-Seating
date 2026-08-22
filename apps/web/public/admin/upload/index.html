@@ -46,10 +46,10 @@
 </form>
 </div></main>
 <footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
-<script>
+<script type="module">
+import{esc}from'/esc.js';
 document.getElementById('tbtn').onclick=function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light')};
 fetch('/api/admin/manifest').then(function(r){if(r.status===401)location.replace('/admin/login')}).catch(function(){});
-var esc=function(s){return String(s??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 var msg=document.getElementById('msg');
 var now=new Date();
 document.getElementById('date').value=now.toISOString().split('T')[0];
