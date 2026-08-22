@@ -65,6 +65,7 @@ pnpm lint && pnpm typecheck && pnpm test
 - **Typecheck:** `pnpm typecheck` (tsc --noEmit). The build type-checks the API/lib layer too (`next build`).
 - **Tests:** Vitest (`apps/web/src/**/*.test.ts` and `apps/web/public/seating.test.ts`) covering the release gate, seating compaction, the gzip storage seam, the client seating module, and exam cleanup. Run `pnpm test`.
 - **Python parser locally:** `pnpm dev:parser` (uvicorn on :8000); `pnpm dev:all` runs web + parser together. Ruff must be on PATH (e.g. parser venv activated with `requirements-dev.txt` installed) for `pnpm lint:python` and pre-commit.
+- **Browser automation:** Always use Chrome or Chromium for any browser-based automation (Puppeteer, Playwright, Lighthouse, screenshot tools, etc.). Do NOT use Edge — Puppeteer + Edge has known bugs with headless mode and CDP compatibility. Prefer: `C:/Program Files/Google/Chrome/Application/chrome.exe` (Chrome) or system-installed `chromium`. Either works — pick whichever is installed. If neither found, install Chromium before proceeding.
 - Node 24 + pnpm 11 pinned in `packageManager`/`engines` and `.nvmrc` (24); editor defaults in `.editorconfig`.
 
 ---
