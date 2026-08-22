@@ -1,0 +1,11 @@
+[
+  { "path": "public/seating.js", "limit": "4 KB" },
+  { "path": "public/esc.js", "limit": "500 B" },
+  { "path": "public/theme.js", "limit": "1 KB" },
+  { "path": "public/site.css", "limit": "5 KB" },
+  { "path": "public/index.html", "limit": "8 KB" },
+  { "path": "public/exam/index.html", "limit": "10 KB" },
+  { "path": "public/admin/login/index.html", "limit": "8 KB" },
+  { "path": "public/admin/schedule/index.html", "limit": "10 KB" },
+  { "path": "public/admin/upload/index.html", "limit": "10 KB" }
+]
