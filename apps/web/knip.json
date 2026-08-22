@@ -1,0 +1,11 @@
+{
+  "$schema": "https://knip.dev/schema.json",
+  "entry": ["src/app/**/route.ts", "src/lib/*.ts", "public/*.js"],
+  "ignoreDependencies": [
+    "@types/node",
+    "@types/react",
+    "typescript",
+    "vitest",
+    "dependency-cruiser"
+  ]
+}

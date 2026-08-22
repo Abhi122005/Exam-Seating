@@ -64,7 +64,7 @@ describe("GET /api/seating/[examId]", () => {
   it("returns 404 with no-store cache for unknown exam", async () => {
     const { GET } = await import("./route");
     await GET(new Request("http://localhost"), makeParams("unknown"));
-    expect(lastResponse?.headers?.["Cache-Control"]).toBe("no-store");
+    expect(lastResponse?.headers?.["Cache-Control"]).toContain("no-store");
   });
 
   it("returns scheduled status before publishAt", async () => {

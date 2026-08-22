@@ -8,17 +8,22 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "lint:boundaries": "depcruise src --config .dependency-cruiser.cjs"
+    "lint:boundaries": "depcruise src --config .dependency-cruiser.cjs",
+    "lint:dead": "knip",
+    "size": "size-limit"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
     "next": "^15.5.23"
   },
   "devDependencies": {
+    "@size-limit/preset-app": "^13.0.3",
     "@types/node": "^26.2.0",
     "@types/react": "^19.0.0",
     "dependency-cruiser": "^18.2.0",
+    "knip": "^6.32.2",
     "react": "^19.0.0",
+    "size-limit": "^13.0.3",
     "typescript": "^5.5.3",
     "vitest": "^4.1.10"
   }
