@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { cookies } from "next/headers";
 
 export const ADMIN_COOKIE_NAME = "admin_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24;
@@ -42,25 +41,4 @@ export function checkAdminPassword(password: string): boolean {
   const a = Buffer.from(password);
   const b = Buffer.from(adminPassword());
   return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
-export function getAdminCookieOptions(): {
-  httpOnly: boolean;
-  sameSite: "lax";
-  secure: boolean;
-  path: string;
-  maxAge: number;
-} {
-  return {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  };
-}
-
-export async function isAdminAuthenticated(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return verifySessionToken(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 }

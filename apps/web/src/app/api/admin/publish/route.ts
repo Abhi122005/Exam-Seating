@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "~/lib/admin-session";
+import { isAdminAuthenticated } from "~/lib/auth";
 import { publishExam } from "~/lib/exam-publish";
 
 export async function POST(req: Request) {

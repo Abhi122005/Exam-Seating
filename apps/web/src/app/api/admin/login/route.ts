@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import {
-  ADMIN_COOKIE_NAME,
-  checkAdminPassword,
-  getAdminCookieOptions,
-  issueSessionToken,
-} from "~/lib/admin-session";
+import { checkAdminPassword, issueSessionToken } from "~/lib/admin-session";
+import { ADMIN_COOKIE_NAME, getAdminCookieOptions } from "~/lib/auth";
 import { recordFailure, resetKey } from "~/lib/rate-limit";
 
 function getClientIp(req: Request): string {
