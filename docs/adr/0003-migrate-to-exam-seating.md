@@ -2,11 +2,11 @@
 
 - **Status:** Accepted
 - **Date:** 2026-08-22
-- **Owner:** Abhi122005 (migrated from sebin-gg)
+- **Owner:** Abhi122005
 
 ## Context
 
-The portal was developed under `sebin-gg/iedc-web-management-cell-task1` (branch `main`, 93 commits). A parallel `Abhi122005/Exam-Seating` repository existed with `master` (9 commits, `b11e307`), containing an earlier static-HTML variant plus QR-code feature (`/api/qr`, `qrcode-generator`) that was later dropped. The two histories were unrelated (no common ancestor).
+The prior `main` branch (93 commits) and the existing `master` (9 commits, `b11e307` — earlier static-HTML variant with QR-code feature `/api/qr`) were unrelated histories (no common ancestor).
 
 CEC needed a single canonical repository under `Abhi122005/Exam-Seating` with one authoritative branch, while retaining rollback to the old `master` content.
 
@@ -15,7 +15,7 @@ CEC needed a single canonical repository under `Abhi122005/Exam-Seating` with on
 1. **Remote migrated:** `origin` set to `https://github.com/Abhi122005/Exam-Seating.git`.
 2. **Backup preserved:** the pre-migration `master` tip (`b11e307`) pushed to `origin/master-backup`.
 3. **Single codebase:** local `main` (`d844fe0`) force-pushed to both `origin/main` and `origin/master`, so the two branch names currently point to the same commit.
-4. **Docs updated:** `README.md` (clone URL + handover), `ARCHITECTURE.md`, `AGENTS.md`, `sonar-project.properties` (`Abhi122005_Exam-Seating` / `Abhi122005`), `ci.yml` example, and `ADR-0001` amended.
+4. **Docs updated:** `README.md` (clone URL + handover), `ARCHITECTURE.md`, `AGENTS.md`, `sonar-project.properties` (`Abhi122005_Exam-Seating` / `Abhi122005`), `ci.yml` example.
 5. **History ancestry not stitched:** the old `master` lineage is not a parent of the new tips — it is isolated on `master-backup`. A `merge -s ours` could attach it as a parent without changing the tree, but was deferred (hard overwrite + backup was preferred for simplicity).
 
 ## Alternatives considered

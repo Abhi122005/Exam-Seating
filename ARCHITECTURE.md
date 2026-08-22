@@ -101,7 +101,7 @@ See `CONTEXT.md` for the domain glossary.
 
 ## 6. Handover: Fork & Redeploy
 
-Repo owner: **Abhi122005** (originally **sebin-gg** — migrated 2026-08-22, see ADR-0003). If CEC maintainers cannot reach the owner, fork the
+Repo owner: **Abhi122005**. If CEC maintainers cannot reach the owner, fork the
 repo and redeploy instead of waiting: `apps/web` on Vercel, `services/parser`
 on Render (or any host). All configuration is environment-variable based — no
 secrets or database live in the repo — so a fork starts from `.env.example`,
