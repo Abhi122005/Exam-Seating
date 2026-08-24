@@ -21,7 +21,7 @@
     "dependency-cruiser": "^18.2.0",
     "knip": "^6.32.2",
     "react": "^19.0.0",
-    "typescript": "^5.5.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
 }
