@@ -2,7 +2,9 @@ name: SonarCloud Scan
 
 on:
   push:
+    branches: [master]
   pull_request:
+    branches: [master]
 
 permissions:
   contents: read
@@ -15,6 +17,8 @@ jobs:
   sonarcloud:
     name: SonarQube Cloud Scan
     runs-on: ubuntu-latest
+    # Non-blocking: SonarCloud org not configured yet
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
