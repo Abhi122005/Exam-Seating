@@ -26,8 +26,18 @@ jobs:
             for (let i = 0; i < 90; i++) {
               const { data: checks } = await github.rest.checks.listForRef({ owner, repo, ref: sha });
               const { data: status } = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: sha });
-              const runs = checks.check_runs.filter(r => r.name !== 'auto-merge' && r.name !== 'SonarQube Cloud Scan');
-              const statuses = (status.statuses || []).filter(s => s.context !== 'SonarQube Cloud Scan');
+              
+              // Filter out SonarQube and auto-merge checks
+              const runs = checks.check_runs.filter(r => 
+                r.name !== 'auto-merge' && 
+                !r.name.includes('SonarQube') &&
+                r.name !== 'SonarCloud Code Analysis'
+              );
+              const statuses = (status.statuses || []).filter(s => 
+                !s.context.includes('SonarQube') &&
+                s.context !== 'SonarCloud Code Analysis'
+              );
+              
               const hasAnything = runs.length > 0 || statuses.length > 0;
               if (!hasAnything) {
                 if (i > 10) {
