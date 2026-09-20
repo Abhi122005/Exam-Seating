@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { getAdminPassword } from "./env";
 
 export const ADMIN_COOKIE_NAME = "admin_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24;
@@ -7,7 +8,7 @@ const SESSION_NONCE_BYTES = 16;
 const SESSION_SIG_BYTES = 32;
 
 function adminPassword(): string {
-  return process.env.ADMIN_PASSWORD || "CEC2026";
+  return getAdminPassword();
 }
 
 function signSession(payload: Buffer): Buffer {

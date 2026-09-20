@@ -12,7 +12,7 @@ import {
  * Used to test expiry without waiting 24 hours.
  */
 function craftTokenWithTimestamp(ts: number): string {
-  const password = process.env.ADMIN_PASSWORD || "CEC2026";
+  const password = process.env.ADMIN_PASSWORD || "test-only-admin-password";
   const nonce = crypto.randomBytes(16);
   const payload = Buffer.alloc(4 + 16);
   payload.writeUInt32BE(ts, 0);
@@ -54,7 +54,7 @@ describe("admin session module", () => {
   });
 
   it("verifies the master password in constant-time fashion", () => {
-    expect(checkAdminPassword("CEC2026")).toBe(true);
+    expect(checkAdminPassword("test-only-admin-password")).toBe(true);
     expect(checkAdminPassword("wrong")).toBe(false);
   });
 });

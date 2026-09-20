@@ -19,11 +19,13 @@ venv/
 uv.lock
 
 # Environment & Local Fallback Data
+# Ignore secret env files, but keep a tracked template example in the repo.
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+!**/.env.example
+.envrc
+.envrc.local
 .local_data/
 
 # Logs

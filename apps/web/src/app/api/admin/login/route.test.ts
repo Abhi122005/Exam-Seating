@@ -44,7 +44,7 @@ describe("POST /api/admin/login — auth", () => {
   });
 
   it("returns 200 and sets session cookie for correct password", async () => {
-    await POST(makeRequest("CEC2026"));
+    await POST(makeRequest("test-only-admin-password"));
     expect(lastResponse?.status).toBe(200);
     expect(lastResponse?.body).toMatchObject({ success: true });
     expect(mockCookieStore.set).toHaveBeenCalledWith(
@@ -56,7 +56,7 @@ describe("POST /api/admin/login — auth", () => {
 
   it("session cookie value is a valid, non-expired token", async () => {
     const { verifySessionToken } = await import("~/lib/admin-session");
-    await POST(makeRequest("CEC2026"));
+    await POST(makeRequest("test-only-admin-password"));
 
     const token = mockCookieStore.set.mock.calls[0][1];
     expect(verifySessionToken(token)).toBe(true);
@@ -110,7 +110,7 @@ describe("POST /api/admin/login — rate limiting", () => {
     expect(getCount("unknown")).toBe(100);
 
     // Successful login resets
-    await POST(makeRequest("CEC2026"));
+    await POST(makeRequest("test-only-admin-password"));
     expect(getCount("unknown")).toBe(0);
 
     // Can fail again without 429

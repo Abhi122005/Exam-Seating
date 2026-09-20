@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { pruneExpiredExams } from "~/lib/exam-cleanup";
+import { getCronSecret } from "~/lib/env";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET || "change-me-cron";
+  const cronSecret = getCronSecret();
   const isDev = process.env.NODE_ENV === "development";
 
   if (!isDev && authHeader !== `Bearer ${cronSecret}`) {

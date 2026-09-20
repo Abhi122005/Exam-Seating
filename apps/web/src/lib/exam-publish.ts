@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { compactRooms } from "~/lib/seating-format";
 import { readManifest, writeExamData, writeManifest } from "~/lib/blob";
 import type { ExamData, ParsedRoom } from "~/lib/blob";
+import { getBackendSharedSecret } from "./env";
 
 export const RELEASE_WINDOW_MS = 5 * 60 * 60 * 1000;
 
@@ -50,7 +51,7 @@ const mockRooms: ParsedRoom[] = [
 
 export async function parseRoomsWithService(file: File): Promise<ParsedSeating> {
   const parserUrl = process.env.PARSER_SERVICE_URL || "http://localhost:8000";
-  const backendSecret = process.env.BACKEND_SHARED_SECRET || "change-me";
+  const backendSecret = getBackendSharedSecret();
 
   try {
     const parserFormData = new FormData();
