@@ -1,17 +1,16 @@
 /**
  * Central place for every required secret. Throws immediately if missing,
  * in every environment including local dev -- no silent fallback to a
- * hardcoded value, ever. Created because the same "|| 'literal-value'"
- * pattern was found duplicated across three files (admin-session.ts,
- * exam-publish.ts, cron/cleanup/route.ts), each with its own hardcoded
- * fallback already committed to git history. One place to audit from now on.
+ * hardcoded value, ever. This keeps the repo aligned with the original
+ * security rule: every external secret must come from environment variables,
+ * not from embedded literals or local defaults.
  */
 function requireEnv(name: string): string {
-  const value = process.env[name];
+  const value = process.env[name]?.trim();
   if (!value) {
     throw new Error(
       `${name} is not set. Add it to apps/web/.env.local for local dev, ` +
-        `or to your Vercel project's Environment Variables for production.`
+        `or to your Vercel project's Environment Variables for production.`,
     );
   }
   return value;
@@ -27,4 +26,8 @@ export function getBackendSharedSecret(): string {
 
 export function getCronSecret(): string {
   return requireEnv("CRON_SECRET");
+}
+
+export function getParserServiceUrl(): string {
+  return requireEnv("PARSER_SERVICE_URL");
 }
