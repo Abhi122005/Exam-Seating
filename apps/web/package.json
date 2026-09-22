@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "lint:boundaries": "depcruise src --config .dependency-cruiser.cjs",
     "lint:dead": "knip"
   },
@@ -18,10 +18,11 @@
   "devDependencies": {
     "@types/node": "^26.6.1",
     "@types/react": "^19.0.0",
+    "@vitest/coverage-v8": "5.0.1",
     "dependency-cruiser": "^18.2.0",
     "knip": "^6.35.1",
     "react": "^19.0.0",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.2",
     "vitest": "^5.0.1"
   }
 }
