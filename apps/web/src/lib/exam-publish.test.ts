@@ -123,6 +123,44 @@ describe("exam publish module", () => {
     expect(manifest.map((e) => e.examId)).toEqual([second.examId, first.examId]);
   });
 
+  it("falls back to the local parser when the Python service is unavailable", async () => {
+    const { publish } = await freshPublish();
+    process.env.PARSER_SERVICE_URL = "http://localhost:8000";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ECONNREFUSED"));
+
+    const result = await publish.parseRoomsWithService(
+      new File([new Uint8Array(8)], "seating.pdf"),
+    );
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(result).toMatchObject({
+      warning: expect.stringContaining("Python parser service unreachable"),
+      rooms: expect.arrayContaining([expect.objectContaining({ room_no: "301" })]),
+    });
+  });
+
+  it("falls back to the local parser when the Python service returns an HTTP error", async () => {
+    const { publish } = await freshPublish();
+    process.env.PARSER_SERVICE_URL = "http://localhost:8000";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: false,
+      status: 500,
+    } as Response);
+
+    const result = await publish.parseRoomsWithService(
+      new File([new Uint8Array(8)], "seating.pdf"),
+    );
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(result.warning).toContain("Python parser service unreachable");
+    expect(result.rooms).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ room_no: "301" }),
+        expect.objectContaining({ room_no: "302" }),
+      ]),
+    );
+  });
+
   it("generates collision-resistant exam ids", async () => {
     const { publish } = await freshPublish();
     const ids = new Set();

@@ -36,6 +36,13 @@ describe("GET /api/cron/cleanup", () => {
     expect(lastResponse?.body).toMatchObject({ success: true });
   });
 
+  it("returns 401 when the authorization header is the wrong length", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("CRON_SECRET", "test-secret");
+    await GET(makeRequest({ authorization: "Bearer test-secret-123" }));
+    expect(lastResponse?.status).toBe(401);
+  });
+
   it("bypasses auth in development mode", async () => {
     vi.stubEnv("NODE_ENV", "development");
     await GET(makeRequest());

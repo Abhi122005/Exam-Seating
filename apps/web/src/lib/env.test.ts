@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { getAdminPassword, getBackendSharedSecret, getCronSecret } from "./env";
+import {
+  getAdminPassword,
+  getBackendSharedSecret,
+  getCronSecret,
+  getParserServiceUrl,
+} from "./env";
 
 describe("env utilities", () => {
   const originalEnv = { ...process.env };
@@ -41,5 +46,15 @@ describe("env utilities", () => {
   it("throws when CRON_SECRET is missing", () => {
     delete process.env.CRON_SECRET;
     expect(() => getCronSecret()).toThrowError(/CRON_SECRET is not set/);
+  });
+
+  it("returns PARSER_SERVICE_URL when configured", () => {
+    process.env.PARSER_SERVICE_URL = "http://localhost:8000";
+    expect(getParserServiceUrl()).toBe("http://localhost:8000");
+  });
+
+  it("throws when PARSER_SERVICE_URL is missing", () => {
+    delete process.env.PARSER_SERVICE_URL;
+    expect(() => getParserServiceUrl()).toThrowError(/PARSER_SERVICE_URL is not set/);
   });
 });
