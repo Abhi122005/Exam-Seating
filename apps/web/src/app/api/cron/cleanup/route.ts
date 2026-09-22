@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { pruneExpiredExams } from "~/lib/exam-cleanup";
 import { getCronSecret } from "~/lib/env";
