@@ -14,9 +14,7 @@ concurrency:
 
 jobs:
   # Admin bypass: a commit message or PR title containing `[skip ci]` skips CI,
-  # but ONLY for admins listed in the repo variable CI_ADMINS (comma-separated
-  # GitHub usernames, e.g. `Abhi122005`). Non-admins cannot skip; empty or missing
-  # CI_ADMINS means nobody can bypass.
+  # but ONLY for admins listed in the repo variable CI_ADMINS.
   decide:
     runs-on: ubuntu-latest
     outputs:
@@ -25,23 +23,41 @@ jobs:
       - name: Resolve admin skip-ci bypass
         id: decide
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
           ADMINS: ${{ vars.CI_ADMINS }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           HEAD_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           MESSAGE="$(gh api "repos/${{ github.repository }}/commits/${HEAD_SHA}" --jq '.commit.message' 2>/dev/null || true)"
-          if printf '%s' "$MESSAGE" | grep -q '\[skip ci\]' \
-            && ! printf '%s' "$ADMINS" | tr ',' '\n' | grep -qx "$ACTOR"; then
-            echo "should-run=false"
-            echo "Bypass denied: [skip ci] is admin-only (CI_ADMINS repo variable)."
+
+          # Check both the commit message and pull request title.
+          if printf '%s\n%s' "$MESSAGE" "$PR_TITLE" | grep -q '\[skip ci\]'; then
+            HAS_SKIP_CI=true
           else
-            echo "should-run=true"
+            HAS_SKIP_CI=false
           fi
 
-  # Conventional-commit title check (feat:, fix:, chore:, docs:, refactor:,
-  # perf:, test:, build:, ci:, style:, revert:, merge:). Skips alongside the
-  # quality gate when an admin uses `[skip ci]` in the PR title.
+          # Check whether the actor is listed in the CI_ADMINS repository variable.
+          if printf '%s' "$ADMINS" | tr ',' '\n' | grep -qx "$ACTOR"; then
+            IS_ADMIN=true
+          else
+            IS_ADMIN=false
+          fi
+
+          # Only an approved admin may bypass CI.
+          if [ "$HAS_SKIP_CI" = true ] && [ "$IS_ADMIN" = true ]; then
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+            echo "CI skipped: $ACTOR is an approved admin."
+          else
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+
+            if [ "$HAS_SKIP_CI" = true ]; then
+              echo "Bypass denied: [skip ci] is admin-only."
+            fi
+          fi
+
+  # Conventional-commit title check.
   pr-title:
     name: PR Title Convention
     needs: decide
@@ -64,27 +80,36 @@ jobs:
     if: needs.decide.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      # Version comes from the packageManager field in package.json (pnpm@11.21.0)
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
+
+      # Version comes from packageManager in package.json: pnpm@9.15.5
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
+
       - name: Install
         run: pnpm install --frozen-lockfile
+
       - name: Lint (web)
         run: pnpm lint
+
       - name: Lint (parser, ruff)
         run: |
           python -m pip install --quiet ruff
           ruff check services/parser
           ruff format --check services/parser
+
       - name: Typecheck
         run: pnpm typecheck
+
       - name: Test
         run: pnpm test
+
       - name: Build
         run: pnpm --filter web build
+
       - name: Python parser syntax
         run: python -m py_compile services/parser/main.py services/parser/pdf_parser.py
