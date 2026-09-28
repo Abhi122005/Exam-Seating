@@ -50,3 +50,7 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=Abhi122005_Exam-Seating
+            -Dsonar.organization=abhi122005
