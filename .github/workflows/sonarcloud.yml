@@ -15,6 +15,8 @@ concurrency:
 
 jobs:
   sonarcloud:
+    if: github.actor != 'dependabot[bot]'
+    
     name: SonarQube Cloud Scan
     runs-on: ubuntu-latest
 
