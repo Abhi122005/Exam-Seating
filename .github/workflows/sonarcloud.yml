@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    ci : Add pull request types to SonarCloud workflow
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
