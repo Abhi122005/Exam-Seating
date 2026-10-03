@@ -20,7 +20,7 @@
     "@types/react": "^19.0.0",
     "@vitest/coverage-v8": "5.0.1",
     "dependency-cruiser": "^18.4.0",
-    "knip": "^6.35.1",
+    "knip": "^6.38.0",
     "react": "^19.0.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.1"
