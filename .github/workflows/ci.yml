@@ -108,6 +108,12 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # Immediately after the test step so apps/web/coverage/coverage-summary.json
+      # exists; the gate reads it. CRAP = c^2*(1-cov)^3 + c combines the eslint
+      # complexity ceiling with the coverage floor.
+      - name: CRAP gate
+        run: pnpm crap:gate
+
       - name: Build
         run: pnpm --filter web build
 
