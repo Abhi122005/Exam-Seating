@@ -100,3 +100,12 @@ Use concise, conventional commits:
 - `refactor: ...` for architectural improvements
 
 PR titles MUST use the same prefixes — enforced by the CI `pr-title` check.
+
+## 🔀 Pull Request Merge Policy
+
+After completing work on a PR, agents MUST:
+
+1. Push the branch and wait for code reviews and all CI checks to finish.
+2. Only merge once every required review is approved and every check is green.
+3. Never merge with failing, pending, or missing checks, and never self-merge past review requests.
+4. If a review requests changes, address them on the same branch and re-verify before merging.
