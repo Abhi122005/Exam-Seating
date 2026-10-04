@@ -4,6 +4,34 @@ This file contains guidelines, architectural rules, and project patterns for AI 
 
 ---
 
+## 🧹 Branch hygiene (required)
+
+Merged branches get deleted in the same task that merges them.
+
+- **Before creating a branch or PR**, sweep for stale ones first:
+  ```bash
+  git fetch --all --prune
+  gh pr list --state all --head <branch> --json number,state   # MERGED -> candidate
+  git ls-remote --heads origin <branch> | wc -l                # 0 -> remote already gone
+  ```
+- **After a PR merges**, delete both halves immediately:
+  ```bash
+  git push origin --delete <branch>
+  git branch -d <branch>
+  ```
+  Or pass `--delete-branch` to `gh pr merge`.
+- **Squash merges break ancestry checks.** `git merge-base --is-ancestor <branch>
+origin/main` returns false after a squash merge even when the work landed, and
+  `git cherry` is unreliable for multi-commit squashes. Verify by content:
+  ```bash
+  git diff origin/main <branch> -- <files-the-branch-authored>   # empty = in main
+  ```
+- **Never delete**: `main`, a branch with an `OPEN` PR (this repo requires
+  review before merge), or any branch whose content genuinely differs from
+  `main`. Ask first when unsure.
+
+---
+
 ## 🛠️ Package Manager & Workspace Rules
 
 - **Default Package Manager:** Always use `pnpm` for JavaScript/TypeScript commands.
