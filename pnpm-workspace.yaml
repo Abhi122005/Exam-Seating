@@ -5,6 +5,11 @@ packages:
 overrides:
   postcss: ^8.5.23
   sharp: ^0.35.3
+  # typescript-eslint@8.x refuses to load against TS 7 ("does not support TS 7.0"),
+  # which makes eslint exit 2 before a single rule runs. Pin below 6.1 until
+  # typescript-eslint ships TS 7 support
+  # (https://github.com/typescript-eslint/typescript-eslint/issues/10940).
+  typescript: ^6.0.3
 
 allowBuilds:
   sharp: true
