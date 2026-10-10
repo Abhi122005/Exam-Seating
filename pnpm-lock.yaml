@@ -36,8 +36,8 @@ importers:
   apps/web:
     dependencies:
       '@vercel/blob':
-        specifier: ^2.8.0
-        version: 2.8.0
+        specifier: ^2.8.1
+        version: 2.8.1
       next:
         specifier: ^16.3.7
         version: 16.3.8(@babel/core@7.29.7)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -976,8 +976,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vercel/blob@2.8.0':
-    resolution: {integrity: sha512-Nu+HWKpkgovCh/ezlG7wCVwF7RErTzLzZMbGKFBdGBCbTKyK+s5VXPLl+0+TpNEQPH8AVaGzOpIsXUOtkqylCQ==}
+  '@vercel/blob@2.8.1':
+    resolution: {integrity: sha512-QFX17sMRoBnPuNyHsQsY5GsYRg9HoE8yGKKbfB/V/JK9QuyQp10R5qeNntT6EgUJ4cQ3R+sH26n5l/LacfzzEw==}
     engines: {node: '>=20.0.0'}
 
   '@vercel/cli-config@0.2.7':
@@ -3406,7 +3406,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@vercel/blob@2.8.0':
+  '@vercel/blob@2.8.1':
     dependencies:
       '@vercel/oidc': 3.8.8
       async-retry: 1.3.3
