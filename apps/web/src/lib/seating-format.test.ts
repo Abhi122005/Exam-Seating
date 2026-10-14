@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildRollLookup, compactRooms } from "~/lib/seating-format";
+import { buildRollLookup, compactRooms, findSeatInRooms } from "~/lib/seating-format";
 import type { ParsedRoom } from "~/lib/blob";
 
 const sampleRooms: ParsedRoom[] = [
@@ -64,5 +64,26 @@ describe("buildRollLookup", () => {
     const [room] = compactRooms(sampleRooms);
     const lookup = buildRollLookup([room!]);
     expect(lookup.get("CS24C14")).toEqual({ roomNo: "301", label: "General Batch" });
+  });
+});
+
+describe("findSeatInRooms (server-side single-student lookup)", () => {
+  it("finds range hits with bounds", () => {
+    const [room] = compactRooms(sampleRooms);
+    expect(findSeatInRooms([room!], "cs24c05")).toEqual({
+      roomNo: "301",
+      label: "Year 2 · Batch C",
+      roll_from: "CS24C01",
+      roll_to: "CS24C10",
+    });
+  });
+
+  it("prefers singleton hits and rejects invalid input", () => {
+    const [room] = compactRooms(sampleRooms);
+    expect(findSeatInRooms([room!], "CS24C11")).toEqual({ roomNo: "301", label: "CS203" });
+    expect(findSeatInRooms([room!], "NOPE99")).toBeUndefined();
+    expect(findSeatInRooms([room!], "   ")).toBeUndefined();
+    expect(findSeatInRooms([room!], "<script>")).toBeUndefined();
+    expect(findSeatInRooms([room!], "A".repeat(41))).toBeUndefined();
   });
 });

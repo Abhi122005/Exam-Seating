@@ -39,14 +39,14 @@
 <div><h1 class="h1">Upload Exam Seating PDF</h1><p class="sub">Upload KTU seating allocation PDF &amp; set automatic release schedule</p></div>
 </div>
 <form id="form" class="card">
-<div id="msg"></div>
-<div class="field"><label>Select Seating PDF File</label><input id="file" class="input" type="file" accept="application/pdf" required></div>
-<div class="field"><label>Exam Title</label><input id="title" class="input" type="text" value="KTU B.Tech Internal Exam" placeholder="e.g. KTU S6 B.Tech Regular Exam" required></div>
+<div id="msg" aria-live="polite"></div>
+<div class="field"><label for="file">Select Seating PDF File</label><input id="file" class="input" type="file" accept="application/pdf" required></div>
+<div class="field"><label for="title">Exam Title</label><input id="title" class="input" type="text" value="KTU B.Tech Internal Exam" placeholder="e.g. KTU S6 B.Tech Regular Exam" required></div>
 <div class="grid2">
-<div class="field"><label>Session</label><select id="session" class="input"><option value="Morning">Morning (FN)</option><option value="Evening">Evening (AN)</option></select></div>
-<div class="field"><label>Exam Date</label><input id="date" class="input" type="date" required></div>
+<div class="field"><label for="session">Session</label><select id="session" class="input"><option value="Morning">Morning (FN)</option><option value="Evening">Evening (AN)</option></select></div>
+<div class="field"><label for="date">Exam Date</label><input id="date" class="input" type="date" required></div>
 </div>
-<div class="field"><label>Scheduled Release Time</label><input id="publish" class="input" type="datetime-local" required><p class="hint">Students cannot see room numbers before this scheduled release timestamp.</p></div>
+<div class="field"><label for="publish">Scheduled Release Time</label><input id="publish" class="input" type="datetime-local" required><p class="hint">Students cannot see room numbers before this scheduled release timestamp.</p></div>
 <button id="btn" class="btn" type="submit"><svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg><span id="btn-label">Publish Seating Release</span></button>
 </form>
 </div></main>

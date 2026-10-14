@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkAdminPassword, issueSessionToken } from "~/lib/admin-session";
 import { ADMIN_COOKIE_NAME, getAdminCookieOptions } from "~/lib/auth";
-import { recordFailure, resetKey } from "~/lib/rate-limit";
+import { getCount, MAX_FAILED, recordFailure, resetKey } from "~/lib/rate-limit";
 
 function getClientIp(req: Request): string {
   return (
@@ -16,6 +16,24 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const password = typeof body?.password === "string" ? body.password : "";
   const ip = getClientIp(req);
+
+  // Pre-check before doing any password work: already-exhausted keys are
+  // rejected immediately, even for correct passwords (prevents an attacker
+  // from probing after lockout, and makes the limit observable).
+  if (getCount(ip) >= MAX_FAILED) {
+    return NextResponse.json(
+      { success: false, message: "Too many failed attempts. Try again later." },
+      { status: 429 },
+    );
+  }
+
+  if (!password || password.length > 256) {
+    recordFailure(ip);
+    return NextResponse.json(
+      { success: false, message: "Invalid admin password" },
+      { status: 401 },
+    );
+  }
 
   if (!checkAdminPassword(password)) {
     if (!recordFailure(ip)) {

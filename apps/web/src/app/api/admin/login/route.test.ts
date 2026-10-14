@@ -103,11 +103,11 @@ describe("POST /api/admin/login — rate limiting", () => {
 
   it("successful login clears rate limit for the IP", async () => {
     const { recordFailure, getCount } = await import("~/lib/rate-limit");
-    // Exhaust the limit
-    for (let i = 0; i < 100; i++) {
+    // A few failures, then success clears
+    for (let i = 0; i < 5; i++) {
       recordFailure("unknown");
     }
-    expect(getCount("unknown")).toBe(100);
+    expect(getCount("unknown")).toBe(5);
 
     // Successful login resets
     await POST(makeRequest("CEC2026"));
@@ -116,5 +116,15 @@ describe("POST /api/admin/login — rate limiting", () => {
     // Can fail again without 429
     await POST(makeRequest("wrong"));
     expect(lastResponse?.status).toBe(401);
+  });
+
+  it("locked-out IP gets 429 even with the correct password", async () => {
+    const { recordFailure } = await import("~/lib/rate-limit");
+    for (let i = 0; i < 100; i++) {
+      recordFailure("unknown");
+    }
+    await POST(makeRequest("CEC2026"));
+    expect(lastResponse?.status).toBe(429);
+    expect(lastResponse?.body).toMatchObject({ success: false });
   });
 });

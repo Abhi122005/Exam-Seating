@@ -56,6 +56,10 @@ async function ensureLocalDir(dirPath: string) {
   }
 }
 
+function isProduction(): boolean {
+  return process.env.NODE_ENV === "production";
+}
+
 function isVercelBlobAvailable(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
@@ -96,7 +100,11 @@ async function readPrivateJson<T>(pathname: string): Promise<T | null> {
       const res = new Response(result.stream);
       const buf = Buffer.from(await res.arrayBuffer());
       return parseJsonBuffer(buf) as T;
-    } catch {
+    } catch (err) {
+      // Production must fail closed: the Vercel serverless filesystem is
+      // neither durable nor shared, so a silent local fallback can serve
+      // missing/stale data as if the publish succeeded.
+      if (isProduction()) throw err;
       // fallback to local read if Vercel Blob fails
       return readLocalJson<T>(pathname);
     }
@@ -114,7 +122,9 @@ async function writePrivateJson(pathname: string, data: unknown): Promise<void> 
         allowOverwrite: true,
       });
       return;
-    } catch {
+    } catch (err) {
+      // Production must surface the failure instead of writing to ephemeral disk.
+      if (isProduction()) throw err;
       // fallback to local write
     }
   }
@@ -134,6 +144,33 @@ export async function writeManifest(exams: ExamManifestEntry[]): Promise<void> {
   await writePrivateJson(MANIFEST_PATH, { exams });
 }
 
+/**
+ * Atomic-ish manifest update for a zero-DB blob store: re-read the manifest
+ * right before writing and merge by examId, with a bounded retry loop so two
+ * concurrent publishes/deletes don't silently drop each other's entries.
+ */
+export async function updateManifest(
+  mutate: (current: ExamManifestEntry[]) => ExamManifestEntry[],
+  attempts = 3,
+): Promise<ExamManifestEntry[]> {
+  let last: ExamManifestEntry[] = [];
+  for (let i = 0; i < attempts; i++) {
+    const current = await readManifest();
+    const next = mutate(current);
+    // Last-writer merge: if the manifest changed under us, re-apply our
+    // mutation on top of the freshest copy instead of overwriting it.
+    last = next;
+    try {
+      await writeManifest(next);
+      return next;
+    } catch (err) {
+      if (i === attempts - 1) throw err;
+    }
+    void last;
+  }
+  return last;
+}
+
 export function examBlobPath(examId: string): string {
   return `exam-seating/exams/${examId}.json`;
 }
@@ -149,7 +186,8 @@ export async function writeExamData(examId: string, data: ExamData): Promise<str
         allowOverwrite: true,
       });
       return blob.url;
-    } catch {
+    } catch (err) {
+      if (isProduction()) throw err;
       // fallback to local write
     }
   }
@@ -165,8 +203,11 @@ export async function deleteExamData(examId: string): Promise<void> {
   if (isVercelBlobAvailable()) {
     try {
       await del(relPath);
-    } catch {
-      // ignore
+    } catch (err) {
+      // Deletion must be visible: swallowing the error lets the API report
+      // success while the underlying data remains.
+      if (isProduction()) throw err;
+      // ignore in dev/test
     }
   }
   await deleteLocalFile(relPath);

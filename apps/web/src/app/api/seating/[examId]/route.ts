@@ -1,26 +1,30 @@
 import { NextResponse } from "next/server";
-import { getPublicExamState } from "~/lib/exam-release";
+import { lookupSeat } from "~/lib/exam-release";
 
 export async function GET(req: Request, { params }: { params: Promise<{ examId: string }> }) {
   const { examId } = await params;
+  const roll = new URL(req.url).searchParams.get("roll") ?? "";
 
-  const state = await getPublicExamState(examId);
+  const { found, state } = await lookupSeat(examId, roll);
 
-  if (!state.found) {
+  if (!found) {
     return NextResponse.json(
       { error: "Exam not found" },
       { status: 404, headers: { "Cache-Control": "no-store, no-cache" } },
     );
   }
 
-  // Add stale-while-revalidate for smoother edge caching
-  const cacheControl = state.cacheControl.replace(
-    /s-maxage=(\d+)/,
-    "s-maxage=$1, stale-while-revalidate=$1",
-  );
+  if (!state) {
+    return NextResponse.json(
+      { error: "Valid roll number is required" },
+      { status: 400, headers: { "Cache-Control": "no-store, no-cache" } },
+    );
+  }
 
-  return NextResponse.json(
-    { ...state.meta, status: state.status, rooms: state.rooms },
-    { status: 200, headers: { "Cache-Control": cacheControl } },
-  );
+  // Single-student result only — never return the full seating plan.
+  // Private per-roll response: must not be cached by shared CDN.
+  return NextResponse.json(state, {
+    status: 200,
+    headers: { "Cache-Control": "private, no-store" },
+  });
 }

@@ -3,7 +3,6 @@ import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { ParsedRoom } from "~/lib/blob";
-
 const rng = vi.hoisted(() => ({ counter: 0 }));
 
 vi.mock("node:crypto", async (importOriginal) => {
@@ -25,11 +24,13 @@ let tmpDir: string;
 beforeEach(() => {
   tmpDir = mkdtempSync(path.join(os.tmpdir(), "publish-test-"));
   process.chdir(tmpDir);
-  delete process.env.BLOB_READ_WRITE_TOKEN;
+  vi.stubEnv("BLOB_READ_WRITE_TOKEN", "");
+  vi.stubEnv("NODE_ENV", "test");
   vi.resetModules();
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   process.chdir(ORIG_CWD);
   rmSync(tmpDir, { recursive: true, force: true });
 });
@@ -130,5 +131,65 @@ describe("exam publish module", () => {
       ids.add(publish.generateExamId("2026-08-18", "Morning"));
     }
     expect(ids.size).toBe(200);
+  });
+
+  it("refuses to publish when the parser returns no rooms", async () => {
+    const { blob, publish } = await freshPublish();
+    const parser = fakeParser({ rooms: [] });
+    await expect(
+      publish.publishExam({
+        file: new File([new Uint8Array(8)], "empty.pdf"),
+        title: "KTU Exam",
+        session: "Morning",
+        examDate: "2026-08-18",
+        publishAt: "2026-08-18T08:00:00.000Z",
+        parseRooms: parser,
+      }),
+    ).rejects.toThrow(/no rooms/i);
+    expect(await blob.readManifest()).toEqual([]);
+  });
+
+  it("rejects invalid publish input before touching the parser", async () => {
+    const { publish } = await freshPublish();
+    const parser = fakeParser({ rooms });
+    const base = {
+      file: new File([new Uint8Array(8)], "a.pdf"),
+      title: "KTU Exam",
+      session: "Morning",
+      examDate: "2026-08-18",
+      publishAt: "2026-08-18T08:00:00.000Z",
+      parseRooms: parser,
+    };
+    await expect(publish.publishExam({ ...base, title: "  " })).rejects.toThrow(/title/i);
+    await expect(publish.publishExam({ ...base, session: "Night" })).rejects.toThrow(/session/i);
+    await expect(publish.publishExam({ ...base, examDate: "18-08-2026" })).rejects.toThrow(/date/i);
+    await expect(publish.publishExam({ ...base, publishAt: "not-a-date" })).rejects.toThrow(
+      /release/i,
+    );
+    expect(parser).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when the parser service is unreachable in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    const { publish } = await freshPublish();
+    // No injected parser → parseRoomsWithService hits localhost:8000, which
+    // refuses the connection in tests.
+    await expect(
+      publish.publishExam({
+        file: new File([new Uint8Array(8)], "a.pdf"),
+        title: "KTU Exam",
+        session: "Morning",
+        examDate: "2026-08-18",
+        publishAt: "2026-08-18T08:00:00.000Z",
+      }),
+    ).rejects.toThrow(/parser service unavailable/i);
+  });
+
+  it("uses the zero-config mock fallback only outside production", async () => {
+    const { publish } = await freshPublish();
+    const seating = await publish.parseRoomsWithService(new File([new Uint8Array(8)], "a.pdf"));
+    expect(seating.rooms.length).toBeGreaterThan(0);
+    expect(seating.warning).toMatch(/development fallback/i);
   });
 });

@@ -9,7 +9,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ examId
   }
 
   const { examId } = await params;
-  await removeExam(examId);
-
-  return NextResponse.json({ success: true });
+  try {
+    const existed = await removeExam(examId);
+    return NextResponse.json({ success: true, deleted: existed });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete exam";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

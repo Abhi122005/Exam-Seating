@@ -24,6 +24,11 @@ This file contains guidelines, architectural rules, and project patterns for AI 
    - DO NOT introduce a database (Postgres, Prisma, Supabase, Redis) to this project.
    - Authentication MUST remain master-password HTTP-only session cookie (`lib/admin-session.ts`).
    - Seating data MUST remain stored in private Vercel Blobs or local filesystem fallback (`lib/blob.ts`).
+   - Manifest concurrency uses read-merge-write via `updateManifest()` in
+     `lib/blob.ts` (bounded retry, merge by `examId`) — best-effort atomicity
+     within the zero-DB constraint, not a true transaction.
+   - Login rate limiting stays in-memory per instance (`lib/rate-limit.ts`) with
+     a best-effort Blob-backed cross-instance signal — no Redis required.
 
 2. **Dual-Mode Local Fallbacks:**
    - Every cloud service MUST maintain a working local fallback:
@@ -31,10 +36,21 @@ This file contains guidelines, architectural rules, and project patterns for AI 
      - PDF Parser: `/api/admin/publish` must fallback to local mock parser if Python backend is offline.
      - Cron: `/api/cron/cleanup` must bypass `CRON_SECRET` check in `NODE_ENV === 'development'`.
    - Never break local zero-config development when modifying storage or API routes.
+   - **Production fail-closed rule (P0):** when `NODE_ENV === 'production'` AND the
+     cloud service is configured (Blob token present / parser URL set), a cloud
+     failure MUST throw instead of silently falling back to `.local_data/` or
+     `mockRooms`. Local fallbacks stay for dev/test zero-config only.
+     (`parseRoomsWithService`, `readPrivateJson`, `writePrivateJson`,
+     `writeExamData`, `deleteExamData`.)
 
 3. **Client-Side Lexicographic Matching:**
    - Seating searches MUST happen client-side using range comparisons (`regNo >= roll_from && regNo <= roll_to`).
    - DO NOT expand ranges into individual student rows in backend JSON responses.
+   - **Privacy rule (P1):** the full seating plan must never be served to browsers.
+     Range comparisons now run server-side in `findSeatInRooms`
+     (`lib/seating-format.ts`); `/api/seating/[examId]?roll=` returns only the
+     single matching student's hall/seat, and `/api/exam-meta/[examId]` returns
+     shell exam info (status/title/session) without rooms.
 
 ---
 

@@ -25,6 +25,44 @@ export function compactRooms(rooms: ParsedRoom[]): ParsedRoom[] {
   });
 }
 
+export interface SeatHit {
+  roomNo: string;
+  label: string;
+  roll_from?: string;
+  roll_to?: string;
+}
+
+function normalizeRoll(roll: string): string {
+  return roll.trim().toUpperCase();
+}
+
+export function findSeatInRooms(rooms: ParsedRoom[], roll: string): SeatHit | undefined {
+  const q = normalizeRoll(roll);
+  if (!q || q.length > 40 || !/^[A-Z0-9-]+$/.test(q)) return undefined;
+  for (const room of rooms) {
+    for (const [label, list] of Object.entries(room.rolls ?? {})) {
+      if (list.toUpperCase().split(",").includes(q)) {
+        return { roomNo: room.room_no, label: label || "General Batch" };
+      }
+    }
+  }
+  for (const room of rooms) {
+    for (const rg of room.ranges ?? []) {
+      const f = String(rg.roll_from).toUpperCase();
+      const t = String(rg.roll_to).toUpperCase();
+      if (q >= f && q <= t) {
+        return {
+          roomNo: room.room_no,
+          label: rg.label || "General Batch",
+          roll_from: rg.roll_from,
+          roll_to: rg.roll_to,
+        };
+      }
+    }
+  }
+  return undefined;
+}
+
 export function buildRollLookup(rooms: ParsedRoom[]): Map<string, RollHit> {
   const lookup = new Map<string, RollHit>();
   for (const room of rooms) {

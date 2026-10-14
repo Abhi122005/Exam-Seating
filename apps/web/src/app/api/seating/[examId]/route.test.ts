@@ -20,11 +20,14 @@ vi.mock("next/server", () => ({
 beforeEach(async () => {
   tmpDir = mkdtempSync(path.join(os.tmpdir(), "seating-route-test-"));
   process.chdir(tmpDir);
-  delete process.env.BLOB_READ_WRITE_TOKEN;
+  vi.stubEnv("BLOB_READ_WRITE_TOKEN", "");
+  vi.stubEnv("NODE_ENV", "test");
   lastResponse = null;
+  vi.resetModules();
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   process.chdir(ORIG_CWD);
   rmSync(tmpDir, { recursive: true, force: true });
 });
@@ -53,21 +56,69 @@ function makeParams(examId: string) {
   return { params: Promise.resolve({ examId }) } as any;
 }
 
-describe("GET /api/seating/[examId]", () => {
+function getReq(examId: string, roll?: string) {
+  const url =
+    roll === undefined
+      ? `http://localhost/api/seating/${examId}`
+      : `http://localhost/api/seating/${examId}?roll=${encodeURIComponent(roll)}`;
+  return new Request(url);
+}
+
+describe("GET /api/seating/[examId] — single-student lookup", () => {
   it("returns 404 for unknown exam", async () => {
     const { GET } = await import("./route");
-    await GET(new Request("http://localhost"), makeParams("unknown"));
+    await GET(getReq("unknown", "CS24C01"), makeParams("unknown"));
     expect(lastResponse?.status).toBe(404);
     expect(lastResponse?.body).toMatchObject({ error: "Exam not found" });
   });
 
   it("returns 404 with no-store cache for unknown exam", async () => {
     const { GET } = await import("./route");
-    await GET(new Request("http://localhost"), makeParams("unknown"));
+    await GET(getReq("unknown", "CS24C01"), makeParams("unknown"));
     expect(lastResponse?.headers?.["Cache-Control"]).toContain("no-store");
   });
 
-  it("returns scheduled status before publishAt", async () => {
+  it("requires a roll number and never returns the full seating plan", async () => {
+    const blob = await import("~/lib/blob");
+    await blob.writeExamData("live", exam("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z"));
+    await blob.writeManifest([entry("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z")]);
+
+    const { GET } = await import("./route");
+    await GET(getReq("live"), makeParams("live"));
+    expect(lastResponse?.status).toBe(400);
+    expect(lastResponse?.body).toMatchObject({ error: "Valid roll number is required" });
+  });
+
+  it("returns only the matching seat for a live exam", async () => {
+    const blob = await import("~/lib/blob");
+    await blob.writeExamData("live", exam("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z"));
+    await blob.writeManifest([entry("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z")]);
+
+    const { GET } = await import("./route");
+    await GET(getReq("live", "CS24C05"), makeParams("live"));
+    expect(lastResponse?.status).toBe(200);
+    expect(lastResponse?.body).toMatchObject({
+      status: "live",
+      seat: { room_no: "301" },
+    });
+    // Privacy invariant: the whole allocation must never leave the server.
+    expect(lastResponse?.body).not.toHaveProperty("rooms");
+    expect(lastResponse?.headers?.["Cache-Control"]).toContain("no-store");
+  });
+
+  it("returns live with no seat for an unknown roll", async () => {
+    const blob = await import("~/lib/blob");
+    await blob.writeExamData("live", exam("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z"));
+    await blob.writeManifest([entry("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z")]);
+
+    const { GET } = await import("./route");
+    await GET(getReq("live", "ZZ99Z99"), makeParams("live"));
+    expect(lastResponse?.status).toBe(200);
+    expect(lastResponse?.body).toMatchObject({ status: "live" });
+    expect((lastResponse?.body as any).seat).toBeUndefined();
+  });
+
+  it("returns scheduled status before publishAt without a seat", async () => {
     const blob = await import("~/lib/blob");
     // publishAt far in the future → currently scheduled
     await blob.writeExamData(
@@ -77,23 +128,10 @@ describe("GET /api/seating/[examId]", () => {
     await blob.writeManifest([entry("future", "2099-12-31T00:00:00Z", "2099-12-31T23:59:59Z")]);
 
     const { GET } = await import("./route");
-    await GET(new Request("http://localhost"), makeParams("future"));
+    await GET(getReq("future", "CS24C01"), makeParams("future"));
     expect(lastResponse?.status).toBe(200);
     expect(lastResponse?.body).toMatchObject({ status: "scheduled" });
-    expect((lastResponse?.body as any).rooms).toBeUndefined();
-  });
-
-  it("returns live status with rooms inside release window", async () => {
-    const blob = await import("~/lib/blob");
-    // publishAt in past, expiresAt far in future → currently live
-    await blob.writeExamData("live", exam("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z"));
-    await blob.writeManifest([entry("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z")]);
-
-    const { GET } = await import("./route");
-    await GET(new Request("http://localhost"), makeParams("live"));
-    expect(lastResponse?.status).toBe(200);
-    expect(lastResponse?.body).toMatchObject({ status: "live" });
-    expect((lastResponse?.body as any).rooms).toBeDefined();
+    expect((lastResponse?.body as any).seat).toBeUndefined();
   });
 
   it("returns expired status after expiresAt", async () => {
@@ -103,7 +141,7 @@ describe("GET /api/seating/[examId]", () => {
     await blob.writeManifest([entry("old", "2020-01-01T00:00:00Z", "2020-01-01T12:00:00Z")]);
 
     const { GET } = await import("./route");
-    await GET(new Request("http://localhost"), makeParams("old"));
+    await GET(getReq("old", "CS24C01"), makeParams("old"));
     expect(lastResponse?.status).toBe(200);
     expect(lastResponse?.body).toMatchObject({ status: "expired" });
   });
