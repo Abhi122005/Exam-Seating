@@ -29,9 +29,10 @@ app.add_middleware(
 
 BACKEND_SHARED_SECRET = os.environ.get("BACKEND_SHARED_SECRET", "change-me")
 
-# Mirror the web 10 MB cap; also bound page count so a crafted but small PDF
-# cannot make pdfplumber walk thousands of pages.
-MAX_FILE_BYTES = 10 * 1024 * 1024
+# Upload ceiling. Seating PDFs are normally well under 1 MB, but letterhead
+# logos / seals / high-DPI exports inflate size — generous and env-overridable
+# to match the web layer (MAX_UPLOAD_MB). Page count is the real resource guard.
+MAX_FILE_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "10")) * 1024 * 1024
 MAX_PAGES = int(os.environ.get("PARSER_MAX_PAGES", "200"))
 
 IS_PRODUCTION = (
@@ -88,7 +89,10 @@ async def parse_pdf(
     # Mirror the web 10 MB cap server-side (defense in depth — the web route
     # already rejects oversize uploads, but the parser must not trust callers).
     if len(file_bytes) > MAX_FILE_BYTES:
-        raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large (max {MAX_FILE_BYTES // (1024 * 1024)} MB)",
+        )
     if len(file_bytes) < 5 or not file_bytes.startswith(b"%PDF-"):
         raise HTTPException(status_code=400, detail="File is not a valid PDF")
 

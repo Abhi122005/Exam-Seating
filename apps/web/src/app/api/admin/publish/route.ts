@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "~/lib/auth";
 import { publishExam } from "~/lib/exam-publish";
 
+// Upload ceiling in MB. Seating PDFs are normally well under 1 MB, but
+// letterhead logos / seals / high-DPI exports can inflate size, so this is
+// generous and overridable per deployment without a code change.
+const MAX_UPLOAD_MB = Number(process.env.MAX_UPLOAD_MB) || 10;
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+
 export async function POST(req: Request) {
   const isAdmin = await isAdminAuthenticated();
   if (!isAdmin) {
@@ -24,8 +30,11 @@ export async function POST(req: Request) {
     if (file.type && file.type !== "application/pdf") {
       return NextResponse.json({ error: "File must be a PDF" }, { status: 400 });
     }
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large (max 10 MB)" }, { status: 400 });
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: `File too large (max ${MAX_UPLOAD_MB} MB)` },
+        { status: 400 },
+      );
     }
     const head = new Uint8Array(await file.slice(0, 5).arrayBuffer());
     const isPdf =

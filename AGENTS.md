@@ -86,10 +86,11 @@ This file contains guidelines, architectural rules, and project patterns for AI 
 
 3d. **Parser resource limits:**
 
-- `services/parser/main.py` enforces: content-type, 10 MB size cap
-  (`MAX_FILE_BYTES`), `%PDF-` magic bytes, `MAX_PAGES` page cap (default
-  200), no exception text in responses, and production-only CORS allowlist
-  with explicit methods/headers.
+- `services/parser/main.py` enforces: content-type, size cap
+  (`MAX_UPLOAD_MB`, default 10 MB — logo/seal-heavy PDFs can inflate size, so
+  it is env-overridable to match the web layer), `%PDF-` magic bytes,
+  `MAX_PAGES` page cap (default 200), no exception text in responses, and
+  production-only CORS allowlist with explicit methods/headers.
 
 3e. **Images — optimize once, serve modern formats:**
 
