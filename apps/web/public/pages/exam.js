@@ -42,7 +42,7 @@ function pollStatus() {
         return;
       }
       var d = x.d;
-      document.title = (d.title || "Exam Seating") + " | KTU Exam Seating";
+      document.title = (d.title || "Exam Seating") + " | CEC Exam Seating";
       document.getElementById("title").textContent = d.title || "Exam Seating";
       document.getElementById("session").textContent = "Session: " + (d.session || "Morning");
       if (d.status === "scheduled") {
