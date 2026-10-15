@@ -9,27 +9,10 @@
 <title>Upload Exam Seating PDF | KTU Exam Seating</title>
 <link rel="preload" href="/site.css" as="style">
 <link rel="stylesheet" href="/site.css">
-<style>
-.wrap{max-width:36rem;margin:0 auto}
-.h1{font-size:1.25rem;font-weight:700}
-.sub{font-size:.75rem;color:var(--mfg);margin-top:.25rem}
-.icon-btn{padding:.5rem;background:var(--card);border:1px solid var(--border);border-radius:.5rem;color:var(--fg);cursor:pointer;display:inline-flex}
-.icon-btn:hover{background:var(--accent)}
-.head-row{display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1.5rem}
-.card{padding:1.5rem}
-.a-ok{border:1px solid rgba(16,185,129,0.2);background:rgba(16,185,129,0.1);color:#065f46}.dark .a-ok{color:#a7f3d0}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.375rem;border:none;border-radius:.75rem;padding:.625rem 1rem;font-size:.875rem;font-weight:600;background:var(--primary);color:var(--pfg);cursor:pointer;width:100%}
-.btn:hover{opacity:.9}.btn:disabled{opacity:.5;cursor:default}
-.input[type=file]{padding:.5rem;font-size:.75rem;color:var(--mfg);cursor:pointer}
-.input[type=file]::file-selector-button{margin-right:.75rem;padding:.375rem .75rem;border:none;border-radius:.5rem;background:var(--primary);color:var(--pfg);font-size:.75rem;font-weight:600;cursor:pointer}
-.field{margin-bottom:1.25rem}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-.hint{font-size:.6875rem;color:var(--mfg);margin-top:.375rem}
-@media(max-width:640px){.grid2{grid-template-columns:1fr}}
-</style>
+<link rel="stylesheet" href="/pages/upload.css">
 <script defer src="/polyfill.min.js"></script>
 <script defer src="/theme.js"></script>
-<script>try{var t=localStorage.getItem("theme");if(!t)t=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark")}catch(e){}</script>
+<script src="/theme-init.js"></script>
 </head>
 <body>
 <header><div class="hd"><a class="logo" href="/"><b>KTU</b>Exam Seating</a><nav><a class="staff" href="/admin/login"><svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Staff Portal</a><button class="tbtn" id="tbtn" aria-label="Toggle theme"><svg class="ic i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="ic i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button></nav></div></header>
@@ -51,31 +34,6 @@
 </form>
 </div></main>
 <footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
-<script type="module">
-import{esc}from'/esc.js';
-fetch('/api/admin/manifest').then(function(r){if(r.status===401)location.replace('/admin/login')}).catch(function(){});
-var msg=document.getElementById('msg');
-var now=new Date();
-document.getElementById('date').value=now.toISOString().split('T')[0];
-document.getElementById('publish').value=new Date(now.getTime()+30*60*1000).toISOString().slice(0,16);
-document.getElementById('form').onsubmit=function(e){
-  e.preventDefault();
-  var file=document.getElementById('file'),title=document.getElementById('title'),session=document.getElementById('session'),date=document.getElementById('date'),publish=document.getElementById('publish'),btn=document.getElementById('btn'),label=document.getElementById('btn-label');
-  msg.innerHTML='';
-  if(!file.files[0]){msg.innerHTML='<div class="alert a-err"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><div>Please select a PDF file</div></div>';return}
-  btn.disabled=true;label.textContent='Parsing & Publishing PDF...';
-  var fd=new FormData();
-  fd.append('file',file.files[0]);fd.append('title',title.value);fd.append('session',session.value);fd.append('examDate',date.value);fd.append('publishAt',new Date(publish.value).toISOString());
-  fetch('/api/admin/publish',{method:'POST',body:fd}).then(function(r){
-    return r.json().then(function(d){if(!r.ok)throw new Error(d.error||'Upload failed')});
-  }).then(function(){
-    msg.innerHTML='<div class="alert a-ok"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg><div>Seating PDF published successfully! Redirecting...</div></div>';
-    setTimeout(function(){location.href='/admin/schedule'},1500);
-  }).catch(function(x){
-    msg.innerHTML='<div class="alert a-err"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><div>'+esc(x.message||'Failed to publish seating PDF')+'</div></div>';
-    btn.disabled=false;label.textContent='Publish Seating Release';
-  });
-};
-</script>
+<script type="module" src="/pages/upload.js"></script>
 </body>
 </html>

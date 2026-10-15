@@ -42,6 +42,12 @@ describe("GET /api/exam-meta/[examId]", () => {
     expect(lastResponse?.status).toBe(404);
   });
 
+  it("rejects malformed exam ids with 400", async () => {
+    await GET(new Request("http://localhost"), makeParams("foo/../bar"));
+    expect(lastResponse?.status).toBe(400);
+    expect(lastResponse?.body).toMatchObject({ error: "Invalid exam id" });
+  });
+
   it("returns shell meta without rooms for a live exam", async () => {
     const blob = await import("~/lib/blob");
     await blob.writeExamData("e1", {

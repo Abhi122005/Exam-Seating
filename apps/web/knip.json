@@ -1,6 +1,6 @@
 {
   "$schema": "https://knip.dev/schema.json",
-  "entry": ["src/app/**/route.ts", "src/lib/*.ts", "public/*.js"],
+  "entry": ["src/app/**/route.ts", "src/lib/*.ts", "public/*.js", "public/pages/*.js"],
   "ignoreDependencies": [
     "@types/node",
     "@types/react",

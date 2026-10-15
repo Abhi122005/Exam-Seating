@@ -13,11 +13,16 @@ app = FastAPI(title="Exam Seating PDF Parser")
 
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
+# Tight CORS: explicit methods/headers only (no wildcard), short max-age.
+# The parser is server-to-server (web -> parser with x-backend-secret);
+# browsers never need to call it directly.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["x-backend-secret", "content-type"],
+    allow_credentials=False,
+    max_age=600,
 )
 
 BACKEND_SHARED_SECRET = os.environ.get("BACKEND_SHARED_SECRET", "change-me")
@@ -62,11 +67,18 @@ async def parse_pdf(
         raise HTTPException(status_code=400, detail="Please upload a PDF file")
 
     file_bytes = await file.read()
+    # Mirror the web 10 MB cap server-side (defense in depth — the web route
+    # already rejects oversize uploads, but the parser must not trust callers).
+    if len(file_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
+    if len(file_bytes) < 5 or not file_bytes.startswith(b"%PDF-"):
+        raise HTTPException(status_code=400, detail="File is not a valid PDF")
 
     try:
         parsed_rooms, source = parse_seating_pdf(file_bytes)
-    except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"Could not parse PDF: {exc}") from exc
+    except Exception:
+        # Never reflect raw exception text (may leak paths/versions).
+        raise HTTPException(status_code=422, detail="Could not parse PDF") from None
 
     rooms_out = [ParsedRoomOut(room_no=r["room_no"], ranges=r["ranges"]) for r in parsed_rooms]
 

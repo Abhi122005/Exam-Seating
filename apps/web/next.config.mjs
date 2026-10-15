@@ -8,11 +8,16 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
+      // No 'unsafe-inline': all page JS/CSS is external (/theme-init.js,
+      // /theme.js, /pages/*.js, /site.css, /pages/*.css). No 'unsafe-eval'.
+      "script-src 'self'",
+      "style-src 'self'",
       "img-src 'self' data:",
       "connect-src 'self'",
       "font-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
       "frame-ancestors 'none'",
     ].join("; "),
   },

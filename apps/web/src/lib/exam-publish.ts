@@ -52,6 +52,40 @@ function validatePublishInput(input: PublishExamInput): void {
   }
 }
 
+/**
+ * Lexicographic range matching (roll_from <= roll <= roll_to) is only correct
+ * when both bounds share the same fixed format — the parser doc explicitly
+ * relies on that invariant. Reject inconsistent ranges instead of silently
+ * mis-seating students at range boundaries.
+ */
+function validateRooms(rooms: ParsedRoom[]): void {
+  for (const room of rooms) {
+    if (!room.room_no || String(room.room_no).length > 50) {
+      throw new Error("Parser returned an invalid room number");
+    }
+    for (const range of room.ranges) {
+      const from = String(range.roll_from ?? "");
+      const to = String(range.roll_to ?? "");
+      if (!from || !to) {
+        throw new Error("Parser returned a range with missing roll numbers");
+      }
+      if (from.length !== to.length) {
+        throw new Error(
+          `Inconsistent roll-number format in range ${from}–${to} (room ${room.room_no}) — lexicographic matching would mis-seat students`,
+        );
+      }
+      if (from > to) {
+        throw new Error(`Reversed roll-number range ${from}–${to} in room ${room.room_no}`);
+      }
+    }
+    for (const [label, list] of Object.entries(room.rolls ?? {})) {
+      if (label.length > 100 || list.split(",").some((r) => r.length > 40 || r.length === 0)) {
+        throw new Error(`Parser returned an invalid roll list in room ${room.room_no}`);
+      }
+    }
+  }
+}
+
 const mockRooms: ParsedRoom[] = [
   {
     room_no: "301",
@@ -122,6 +156,7 @@ export async function publishExam(input: PublishExamInput): Promise<PublishResul
   if (rooms.length === 0) {
     throw new Error("Parser returned no rooms — refusing to publish an empty seating plan");
   }
+  validateRooms(rooms);
 
   const examId = generateExamId(input.examDate, input.session);
   const expiresAt = new Date(new Date(input.publishAt).getTime() + RELEASE_WINDOW_MS).toISOString();

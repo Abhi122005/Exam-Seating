@@ -9,22 +9,10 @@
 <title>Staff Admin Portal | KTU Exam Seating</title>
 <link rel="preload" href="/site.css" as="style">
 <link rel="stylesheet" href="/site.css">
-<style>
-.wrap{max-width:28rem;margin:0 auto;padding-top:3rem}
-.ic-lg{width:1.5rem;height:1.5rem}
-.h1{font-size:1.5rem;font-weight:700}
-.sub{font-size:.75rem;color:var(--mfg)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.375rem;border:none;border-radius:.75rem;padding:.625rem 1rem;font-size:.875rem;font-weight:600;background:var(--primary);color:var(--pfg);cursor:pointer}
-.btn:hover{opacity:.9}.btn:disabled{opacity:.5;cursor:default}
-.btn-block{width:100%}
-.input-wrap{position:relative}
-.input-wrap .input{padding-left:2.5rem}
-.input-wrap .ic{position:absolute;left:.75rem;top:.8rem;color:var(--mfg)}
-.shield{width:3rem;height:3rem;border-radius:1rem;background:rgba(59,130,246,0.1);color:var(--primary);border:1px solid rgba(59,130,246,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto}
-</style>
+<link rel="stylesheet" href="/pages/login.css">
 <script defer src="/polyfill.min.js"></script>
 <script defer src="/theme.js"></script>
-<script>try{var t=localStorage.getItem("theme");if(!t)t=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";if(t==="dark")document.documentElement.classList.add("dark")}catch(e){}</script>
+<script src="/theme-init.js"></script>
 </head>
 <body>
 <header><div class="hd"><a class="logo" href="/"><b>KTU</b>Exam Seating</a><nav><a class="staff" href="/admin/login"><svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Staff Portal</a><button class="tbtn" id="tbtn" aria-label="Toggle theme"><svg class="ic i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="ic i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button></nav></div></header>
@@ -34,27 +22,13 @@
 <h1 class="h1 mt">Staff Admin Portal</h1>
 <p class="sub mt">Enter master admin password to access PDF seating management</p>
 </div>
-<form id="form" class="card mt2" style="padding:1.5rem">
+<form id="form" class="card mt2 login-card">
 <div id="err" aria-live="polite"></div>
 <div class="field"><label for="pw">Master Password</label><div class="input-wrap"><input id="pw" class="input" type="password" placeholder="Enter admin password" required autocomplete="current-password"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
 <button id="btn" class="btn btn-block" type="submit">Login to Staff Dashboard</button>
 </form>
 </div></main>
 <footer>KTU Exam Cell Seating Portal &middot; Fast &amp; Free</footer>
-<script type="module">
-import{esc}from'/esc.js';
-fetch('/api/admin/manifest').then(function(r){if(r.ok)location.replace('/admin/schedule')}).catch(function(){});
-document.getElementById('form').onsubmit=function(e){
-  e.preventDefault();
-  var pw=document.getElementById('pw'),btn=document.getElementById('btn'),err=document.getElementById('err');
-  btn.disabled=true;btn.textContent='Authenticating...';err.innerHTML='';
-  fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw.value})}).then(function(r){
-    return r.json().then(function(d){if(!r.ok)throw new Error(d.message||'Invalid password')});
-  }).then(function(){location.href='/admin/schedule'}).catch(function(x){
-    err.innerHTML='<div class="alert a-err"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><div>'+esc(x.message||'An error occurred')+'</div></div>';
-    btn.disabled=false;btn.textContent='Login to Staff Dashboard';
-  });
-};
-</script>
+<script type="module" src="/pages/login.js"></script>
 </body>
 </html>

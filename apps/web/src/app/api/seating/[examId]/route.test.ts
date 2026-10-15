@@ -78,6 +78,13 @@ describe("GET /api/seating/[examId] — single-student lookup", () => {
     expect(lastResponse?.headers?.["Cache-Control"]).toContain("no-store");
   });
 
+  it("rejects malformed exam ids with 400 before touching storage", async () => {
+    const { GET } = await import("./route");
+    await GET(getReq("../../etc/passwd", "CS24C01"), makeParams("../../etc/passwd"));
+    expect(lastResponse?.status).toBe(400);
+    expect(lastResponse?.body).toMatchObject({ error: "Invalid exam id" });
+  });
+
   it("requires a roll number and never returns the full seating plan", async () => {
     const blob = await import("~/lib/blob");
     await blob.writeExamData("live", exam("live", "2020-01-01T00:00:00Z", "2099-12-31T23:59:59Z"));

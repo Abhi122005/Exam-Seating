@@ -169,6 +169,40 @@ describe("exam publish module", () => {
     expect(parser).not.toHaveBeenCalled();
   });
 
+  it("refuses ranges with inconsistent roll-number formats", async () => {
+    const { publish } = await freshPublish();
+    const badRooms: ParsedRoom[] = [
+      { room_no: "301", ranges: [{ roll_from: "CS24C8", roll_to: "CS24C10" }] },
+    ];
+    await expect(
+      publish.publishExam({
+        file: new File([new Uint8Array(8)], "bad.pdf"),
+        title: "KTU Exam",
+        session: "Morning",
+        examDate: "2026-08-18",
+        publishAt: "2026-08-18T08:00:00.000Z",
+        parseRooms: fakeParser({ rooms: badRooms }),
+      }),
+    ).rejects.toThrow(/inconsistent roll-number format/i);
+  });
+
+  it("refuses reversed roll-number ranges", async () => {
+    const { publish } = await freshPublish();
+    const badRooms: ParsedRoom[] = [
+      { room_no: "301", ranges: [{ roll_from: "CS24C30", roll_to: "CS24C01" }] },
+    ];
+    await expect(
+      publish.publishExam({
+        file: new File([new Uint8Array(8)], "bad.pdf"),
+        title: "KTU Exam",
+        session: "Morning",
+        examDate: "2026-08-18",
+        publishAt: "2026-08-18T08:00:00.000Z",
+        parseRooms: fakeParser({ rooms: badRooms }),
+      }),
+    ).rejects.toThrow(/reversed/i);
+  });
+
   it("fails closed when the parser service is unreachable in production", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
