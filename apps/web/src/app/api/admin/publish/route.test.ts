@@ -20,6 +20,7 @@ vi.mock("next/server", () => ({
 }));
 
 import { POST } from "./route";
+import { resolveMaxUploadMb } from "~/lib/upload-limit";
 
 function makePdfFile(name = "test.pdf"): File {
   const content = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34]); // %PDF-1.4
@@ -117,7 +118,6 @@ describe("POST /api/admin/publish", () => {
     const { issueSessionToken } = await import("~/lib/admin-session");
     mockCookieStore.get.mockReturnValue({ value: issueSessionToken() });
     // publishExam will call the parser adapter — mock it to return rooms
-    const { publishExam } = await import("~/lib/exam-publish");
     vi.spyOn(await import("~/lib/exam-publish"), "publishExam").mockResolvedValue({
       examId: "2026-08-18-morning-test",
       warning: undefined,
@@ -125,5 +125,31 @@ describe("POST /api/admin/publish", () => {
     await POST(makeRequest(makePdfFile()));
     expect(lastResponse?.status).toBe(200);
     expect(lastResponse?.body).toMatchObject({ success: true });
+  });
+});
+
+describe("resolveMaxUploadMb (never fails open)", () => {
+  it("defaults to 15 MB when the env var is missing or blank", () => {
+    expect(resolveMaxUploadMb(undefined)).toBe(15);
+    expect(resolveMaxUploadMb("")).toBe(15);
+    expect(resolveMaxUploadMb("   ")).toBe(15);
+  });
+
+  it("falls back to the default on non-numeric / non-finite / non-positive values", () => {
+    expect(resolveMaxUploadMb("abc")).toBe(15);
+    expect(resolveMaxUploadMb("NaN")).toBe(15);
+    expect(resolveMaxUploadMb("Infinity")).toBe(15);
+    expect(resolveMaxUploadMb("0")).toBe(15);
+    expect(resolveMaxUploadMb("-5")).toBe(15);
+  });
+
+  it("honors an explicit valid value", () => {
+    expect(resolveMaxUploadMb("20")).toBe(20);
+    expect(resolveMaxUploadMb("15.5")).toBe(15.5);
+  });
+
+  it("clamps an absurdly large value to the absolute ceiling (no fail-open)", () => {
+    expect(resolveMaxUploadMb("100000")).toBe(100);
+    expect(resolveMaxUploadMb("1e9")).toBe(100);
   });
 });

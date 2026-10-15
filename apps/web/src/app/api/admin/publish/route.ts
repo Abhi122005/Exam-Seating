@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "~/lib/auth";
 import { publishExam } from "~/lib/exam-publish";
-
-// Default upload ceiling in MB. Seating PDFs are normally well under 1 MB, but
-// letterhead logos / seals / high-DPI exports can inflate size, so the default
-// is generous and overridable per deployment (MAX_UPLOAD_MB) with no code
-// change. The real resource guard is the parser's page-count cap, not this.
-const DEFAULT_MAX_UPLOAD_MB = 25;
+import { resolveMaxUploadMb } from "~/lib/upload-limit";
 
 export async function POST(req: Request) {
   const isAdmin = await isAdminAuthenticated();
@@ -15,7 +10,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const maxUploadMb = Number(process.env.MAX_UPLOAD_MB) || DEFAULT_MAX_UPLOAD_MB;
+    const maxUploadMb = resolveMaxUploadMb(process.env.MAX_UPLOAD_MB);
     const maxUploadBytes = maxUploadMb * 1024 * 1024;
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

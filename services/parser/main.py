@@ -1,4 +1,5 @@
 import io
+import math
 import os
 
 import pdfplumber
@@ -29,10 +30,28 @@ app.add_middleware(
 
 BACKEND_SHARED_SECRET = os.environ.get("BACKEND_SHARED_SECRET", "change-me")
 
-# Upload ceiling. Seating PDFs are normally well under 1 MB, but letterhead
-# logos / seals / high-DPI exports inflate size — generous default, overridable
-# via MAX_UPLOAD_MB to match the web layer. Page count is the real resource guard.
-MAX_FILE_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "25")) * 1024 * 1024
+# Upload ceiling (parser backstop, sits behind the web gate). Seating PDFs are
+# normally well under 1 MB, but letterhead logos / seals / high-DPI exports
+# inflate size. Overridable via MAX_UPLOAD_MB, but never fails open. Page count
+# is the real resource guard.
+DEFAULT_MAX_UPLOAD_MB = 20
+ABSOLUTE_MAX_UPLOAD_MB = 100
+
+
+def _resolve_max_upload_mb() -> float:
+    raw = os.environ.get("MAX_UPLOAD_MB")
+    if raw is None or raw.strip() == "":
+        return float(DEFAULT_MAX_UPLOAD_MB)
+    try:
+        mb = float(raw)
+    except ValueError:
+        return float(DEFAULT_MAX_UPLOAD_MB)
+    if not math.isfinite(mb) or mb <= 0:
+        return float(DEFAULT_MAX_UPLOAD_MB)
+    return min(mb, float(ABSOLUTE_MAX_UPLOAD_MB))
+
+
+MAX_FILE_BYTES = int(_resolve_max_upload_mb() * 1024 * 1024)
 MAX_PAGES = int(os.environ.get("PARSER_MAX_PAGES", "200"))
 
 IS_PRODUCTION = (
