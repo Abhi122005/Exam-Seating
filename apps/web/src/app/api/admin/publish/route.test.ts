@@ -79,15 +79,38 @@ describe("POST /api/admin/publish", () => {
     expect(lastResponse?.body).toMatchObject({ error: "File is not a valid PDF" });
   });
 
-  it("rejects files over 10 MB", async () => {
+  it("rejects files over the configured size limit", async () => {
     const { issueSessionToken } = await import("~/lib/admin-session");
     mockCookieStore.get.mockReturnValue({ value: issueSessionToken() });
-    const big = new File([new Uint8Array(10 * 1024 * 1024 + 1)], "big.pdf", {
+    // Stub a small cap so the boundary is exercised cheaply (no huge buffer).
+    vi.stubEnv("MAX_UPLOAD_MB", "1");
+    const big = new File([new Uint8Array(1024 * 1024 + 1)], "big.pdf", {
       type: "application/pdf",
     });
     await POST(makeRequest(big));
     expect(lastResponse?.status).toBe(400);
-    expect(lastResponse?.body).toMatchObject({ error: "File too large (max 10 MB)" });
+    expect(lastResponse?.body).toMatchObject({ error: "File too large (max 1 MB)" });
+    vi.unstubAllEnvs();
+  });
+
+  it("allows a file just under the configured limit", async () => {
+    const { issueSessionToken } = await import("~/lib/admin-session");
+    mockCookieStore.get.mockReturnValue({ value: issueSessionToken() });
+    vi.stubEnv("MAX_UPLOAD_MB", "1");
+    vi.spyOn(await import("~/lib/exam-publish"), "publishExam").mockResolvedValue({
+      examId: "2026-08-18-morning-test",
+      warning: undefined,
+    });
+    // Exactly 1 MB, starting with the %PDF- magic bytes so it clears both the
+    // size gate and the route's own magic-byte check; publishExam is mocked to
+    // succeed, so a 200 here proves the size gate let it through.
+    const buf = new Uint8Array(1024 * 1024);
+    buf.set([0x25, 0x50, 0x44, 0x46, 0x2d], 0); // "%PDF-"
+    const ok = new File([buf], "ok.pdf", { type: "application/pdf" });
+    await POST(makeRequest(ok));
+    expect(lastResponse?.status).toBe(200);
+    expect(lastResponse?.body).toMatchObject({ success: true });
+    vi.unstubAllEnvs();
   });
 
   it("accepts valid PDF with correct magic bytes", async () => {

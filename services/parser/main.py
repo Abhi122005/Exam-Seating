@@ -30,9 +30,9 @@ app.add_middleware(
 BACKEND_SHARED_SECRET = os.environ.get("BACKEND_SHARED_SECRET", "change-me")
 
 # Upload ceiling. Seating PDFs are normally well under 1 MB, but letterhead
-# logos / seals / high-DPI exports inflate size — generous and env-overridable
-# to match the web layer (MAX_UPLOAD_MB). Page count is the real resource guard.
-MAX_FILE_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "10")) * 1024 * 1024
+# logos / seals / high-DPI exports inflate size — generous default, overridable
+# via MAX_UPLOAD_MB to match the web layer. Page count is the real resource guard.
+MAX_FILE_BYTES = int(os.environ.get("MAX_UPLOAD_MB", "25")) * 1024 * 1024
 MAX_PAGES = int(os.environ.get("PARSER_MAX_PAGES", "200"))
 
 IS_PRODUCTION = (
