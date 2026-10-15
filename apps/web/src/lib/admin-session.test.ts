@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   checkAdminPassword,
   issueSessionToken,
@@ -56,6 +56,22 @@ describe("admin session module", () => {
   it("verifies the master password in constant-time fashion", () => {
     expect(checkAdminPassword("CEC2026")).toBe(true);
     expect(checkAdminPassword("wrong")).toBe(false);
+  });
+
+  it("refuses to run with the default password in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ADMIN_PASSWORD", "");
+    expect(() => checkAdminPassword("CEC2026")).toThrow(/ADMIN_PASSWORD/);
+    expect(() => issueSessionToken()).toThrow(/ADMIN_PASSWORD/);
+    vi.unstubAllEnvs();
+  });
+
+  it("uses the configured password in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ADMIN_PASSWORD", "real-secret");
+    expect(checkAdminPassword("real-secret")).toBe(true);
+    expect(checkAdminPassword("CEC2026")).toBe(false);
+    vi.unstubAllEnvs();
   });
 });
 

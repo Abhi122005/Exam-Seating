@@ -30,6 +30,15 @@ This file contains guidelines, architectural rules, and project patterns for AI 
    - Login rate limiting stays in-memory per instance (`lib/rate-limit.ts`) with
      a best-effort Blob-backed cross-instance signal — no Redis required.
 
+1b. **Secrets fail-closed in production:**
+
+- `ADMIN_PASSWORD` (`lib/admin-session.ts`), `CRON_SECRET`
+  (`api/cron/cleanup`), `BACKEND_SHARED_SECRET` (parser `main.py`) MUST be
+  set via environment variables. In production, missing secrets make the
+  system refuse to operate (login 500 / cleanup 503 / parser 503) instead
+  of accepting the built-in placeholder (`CEC2026`, `change-me-cron`,
+  `change-me`). Dev/test keep the zero-config defaults.
+
 2. **Dual-Mode Local Fallbacks:**
    - Every cloud service MUST maintain a working local fallback:
      - Storage: `lib/blob.ts` must fallback to `.local_data/` when `BLOB_READ_WRITE_TOKEN` is missing.
@@ -42,6 +51,13 @@ This file contains guidelines, architectural rules, and project patterns for AI 
      `mockRooms`. Local fallbacks stay for dev/test zero-config only.
      (`parseRoomsWithService`, `readPrivateJson`, `writePrivateJson`,
      `writeExamData`, `deleteExamData`.)
+   - **No token in production:** all storage ops throw
+     (`BLOB_READ_WRITE_TOKEN is not configured`) — the serverless filesystem
+     must never act as a silent production store.
+   - **Not-found ≠ failure:** `@vercel/blob` `get()` 404 (or
+     `BlobNotFoundError`) means "blob missing" and MUST return null; only real
+     errors fail closed. `readManifest()` must not swallow storage errors into
+     an empty manifest (publish/cleanup would then overwrite real data).
 
 3. **Client-Side Lexicographic Matching:**
    - Seating searches MUST happen client-side using range comparisons (`regNo >= roll_from && regNo <= roll_to`).
@@ -51,6 +67,29 @@ This file contains guidelines, architectural rules, and project patterns for AI 
      (`lib/seating-format.ts`); `/api/seating/[examId]?roll=` returns only the
      single matching student's hall/seat, and `/api/exam-meta/[examId]` returns
      shell exam info (status/title/session) without rooms.
+   - `lib/exam-release.ts` intentionally exposes NO API that returns `rooms` —
+     only `lookupSeat` (single student) and `getPublicExamMeta` (shell meta).
+
+3b. **Strict CSP:**
+
+- `script-src 'self'` and `style-src 'self'` with NO `'unsafe-inline'` and
+  NO `'unsafe-eval'` (`next.config.mjs`). All page JS/CSS must live in
+  external files (`public/pages/*.js|css`, `theme-init.js`, `site.css`) —
+  no inline `<script>`/`<style>`/`style=""`/`on*` attributes.
+
+3c. **Bounded cache staleness:**
+
+- No CDN purge on the free tier, so keep windows short: manifest
+  `s-maxage=15, swr=60`; exam-meta live `s-maxage=30, swr=15`; per-roll
+  seating is `private, no-store`. Deletion/release visibility is bounded
+  by these numbers.
+
+3d. **Parser resource limits:**
+
+- `services/parser/main.py` enforces: content-type, 10 MB size cap
+  (`MAX_FILE_BYTES`), `%PDF-` magic bytes, `MAX_PAGES` page cap (default
+  200), no exception text in responses, and production-only CORS allowlist
+  with explicit methods/headers.
 
 ---
 

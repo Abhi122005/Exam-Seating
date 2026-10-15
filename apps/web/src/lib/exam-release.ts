@@ -1,14 +1,18 @@
 import { findSeatInRooms } from "~/lib/seating-format";
 import { readExamData, readManifest } from "~/lib/blob";
-import type { ExamManifestEntry, ParsedRoom } from "~/lib/blob";
+import type { ExamManifestEntry } from "~/lib/blob";
 
+// NOTE: this module intentionally has NO API that returns the full seating
+// plan. The only way to reach `rooms` is `lookupSeat`, which returns a single
+// student's seat. Cache windows below are deliberately short so a deletion or
+// release change becomes visible quickly (CDN purge is not available on the
+// free tier; bounded staleness is the mitigation).
 export type ExamReleaseState =
   | { found: false }
   | {
       found: true;
       status: "scheduled" | "expired" | "live";
       meta: ExamManifestEntry;
-      rooms?: ParsedRoom[];
       cacheControl: string;
     };
 
@@ -52,15 +56,7 @@ export async function lookupSeat(
   };
 }
 
-export async function getPublicExamState(examId: string): Promise<ExamReleaseState> {
-  return resolveExamState(examId, true);
-}
-
 export async function getPublicExamMeta(examId: string): Promise<ExamReleaseState> {
-  return resolveExamState(examId, false);
-}
-
-async function resolveExamState(examId: string, includeRooms: boolean): Promise<ExamReleaseState> {
   const exam = await readExamData(examId);
 
   if (!exam) {
@@ -73,7 +69,7 @@ async function resolveExamState(examId: string, includeRooms: boolean): Promise<
       found: true,
       status: "expired",
       meta: entry,
-      cacheControl: "public, s-maxage=300",
+      cacheControl: "public, s-maxage=120",
     };
   }
 
@@ -99,7 +95,7 @@ async function resolveExamState(examId: string, includeRooms: boolean): Promise<
       found: true,
       status: "expired",
       meta: shellMeta,
-      cacheControl: "public, s-maxage=300",
+      cacheControl: "public, s-maxage=120",
     };
   }
 
@@ -107,7 +103,6 @@ async function resolveExamState(examId: string, includeRooms: boolean): Promise<
     found: true,
     status: "live",
     meta: shellMeta,
-    rooms: includeRooms ? exam.rooms : undefined,
-    cacheControl: "public, s-maxage=30, stale-while-revalidate=30",
+    cacheControl: "public, s-maxage=30, stale-while-revalidate=15",
   };
 }

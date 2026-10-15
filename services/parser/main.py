@@ -1,5 +1,7 @@
+import io
 import os
 
+import pdfplumber
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +29,15 @@ app.add_middleware(
 
 BACKEND_SHARED_SECRET = os.environ.get("BACKEND_SHARED_SECRET", "change-me")
 
+# Mirror the web 10 MB cap; also bound page count so a crafted but small PDF
+# cannot make pdfplumber walk thousands of pages.
+MAX_FILE_BYTES = 10 * 1024 * 1024
+MAX_PAGES = int(os.environ.get("PARSER_MAX_PAGES", "200"))
+
+IS_PRODUCTION = (
+    os.environ.get("ENVIRONMENT", os.environ.get("NODE_ENV", "development")) == "production"
+)
+
 
 class ParsedRange(BaseModel):
     roll_from: str
@@ -47,6 +58,13 @@ class ParsePdfResponse(BaseModel):
 
 
 def _check_secret(x_backend_secret: str | None):
+    # Fail closed in production: never validate against the placeholder
+    # secret. Local dev keeps the zero-config default.
+    if IS_PRODUCTION and BACKEND_SHARED_SECRET == "change-me":
+        raise HTTPException(
+            status_code=503,
+            detail="BACKEND_SHARED_SECRET is not configured",
+        )
     if x_backend_secret != BACKEND_SHARED_SECRET:
         raise HTTPException(status_code=401, detail="Invalid or missing backend secret")
 
@@ -69,10 +87,24 @@ async def parse_pdf(
     file_bytes = await file.read()
     # Mirror the web 10 MB cap server-side (defense in depth — the web route
     # already rejects oversize uploads, but the parser must not trust callers).
-    if len(file_bytes) > 10 * 1024 * 1024:
+    if len(file_bytes) > MAX_FILE_BYTES:
         raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
     if len(file_bytes) < 5 or not file_bytes.startswith(b"%PDF-"):
         raise HTTPException(status_code=400, detail="File is not a valid PDF")
+
+    # Resource bound: a small PDF can still declare thousands of pages, which
+    # would make line reconstruction walk all of them.
+    try:
+        with pdfplumber.open(io.BytesIO(file_bytes)) as probe:
+            if len(probe.pages) > MAX_PAGES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"PDF exceeds the {MAX_PAGES}-page limit",
+                )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=422, detail="Could not parse PDF") from None
 
     try:
         parsed_rooms, source = parse_seating_pdf(file_bytes)

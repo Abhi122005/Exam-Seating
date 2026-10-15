@@ -5,6 +5,22 @@ import os from "node:os";
 import path from "node:path";
 import type { ExamData } from "~/lib/blob";
 
+const blobMock = vi.hoisted(() => ({ mode: "unused" as "unused" | "notfound" | "error" }));
+
+vi.mock("@vercel/blob", () => ({
+  put: vi.fn(async () => ({ url: "https://store.blob.vercel-storage.com/x" })),
+  get: vi.fn(async () => {
+    if (blobMock.mode === "notfound") {
+      const e = new Error("blob not found");
+      e.name = "BlobNotFoundError";
+      throw e;
+    }
+    if (blobMock.mode === "error") throw new Error("network down");
+    return null;
+  }),
+  del: vi.fn(async () => ({ successful: 0 })),
+}));
+
 const ORIG_CWD = process.cwd();
 let tmpDir: string;
 
@@ -12,6 +28,7 @@ beforeEach(() => {
   tmpDir = mkdtempSync(path.join(os.tmpdir(), "blob-test-"));
   process.chdir(tmpDir);
   delete process.env.BLOB_READ_WRITE_TOKEN;
+  blobMock.mode = "unused";
   vi.resetModules();
 });
 
@@ -86,5 +103,39 @@ describe("blob storage seam", () => {
     await blob.writeExamData(exam.examId, exam);
     await blob.deleteExamData(exam.examId);
     expect(await blob.readExamData(exam.examId)).toBeNull();
+  });
+});
+
+describe("production storage fail-closed", () => {
+  it("refuses all storage operations when no Blob token is configured", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const blob = await freshBlob();
+    await expect(blob.readExamData("e1")).rejects.toThrow(/BLOB_READ_WRITE_TOKEN/);
+    await expect(blob.readManifest()).rejects.toThrow(/BLOB_READ_WRITE_TOKEN/);
+    await expect(blob.writeExamData("e1", exam)).rejects.toThrow(/BLOB_READ_WRITE_TOKEN/);
+    await expect(blob.writeManifest([])).rejects.toThrow(/BLOB_READ_WRITE_TOKEN/);
+    await expect(blob.deleteExamData("e1")).rejects.toThrow(/BLOB_READ_WRITE_TOKEN/);
+  });
+
+  it("treats BlobNotFoundError as a missing exam, not a storage failure", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("BLOB_READ_WRITE_TOKEN", "test_token");
+    blobMock.mode = "notfound";
+    const blob = await freshBlob();
+    expect(await blob.readExamData("missing")).toBeNull();
+  });
+
+  it("propagates real Blob read failures instead of serving empty state", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("BLOB_READ_WRITE_TOKEN", "test_token");
+    blobMock.mode = "error";
+    const blob = await freshBlob();
+    await expect(blob.readExamData("e1")).rejects.toThrow(/network down/);
+    // readManifest must NOT swallow the failure into a fake empty manifest.
+    await expect(blob.readManifest()).rejects.toThrow(/network down/);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 });

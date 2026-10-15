@@ -7,8 +7,7 @@ var clk =
   '<svg class="ic ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 var arw =
   '<svg class="ic earrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
-list.innerHTML =
-  '<div class="loading"><span class="spinner"></span>Seating schedules streaming in...</div>';
+list.innerHTML = '<div class="loading"><span class="spinner"></span>Loading exam schedules…</div>';
 fetch("/api/manifest")
   .then(function (r) {
     return r.json();

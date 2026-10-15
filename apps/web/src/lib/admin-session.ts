@@ -6,8 +6,18 @@ export const SESSION_MAX_AGE = 60 * 60 * 24;
 const SESSION_NONCE_BYTES = 16;
 const SESSION_SIG_BYTES = 32;
 
+const WEAK_FALLBACK_PASSWORD = "CEC2026";
+
 function adminPassword(): string {
-  return process.env.ADMIN_PASSWORD || "CEC2026";
+  const password = process.env.ADMIN_PASSWORD;
+  if (password) return password;
+  // Fail closed in production: shipping the default password to a real exam
+  // would make the whole admin surface public. Dev/test keep the zero-config
+  // default.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ADMIN_PASSWORD is not configured — refusing to run with the default password");
+  }
+  return WEAK_FALLBACK_PASSWORD;
 }
 
 function signSession(payload: Buffer): Buffer {

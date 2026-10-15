@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildRollLookup } from "~/lib/seating-format";
 import type { ExamData, ParsedRoom } from "~/lib/blob";
-import { esc, findSeat, runSeatingApp, statusFor } from "./seating.js";
+import { esc, findSeat, statusFor } from "./seating.js";
 
 const PAYLOAD: ExamData = {
   examId: "2026-08-18-morning-a3f9",
@@ -26,20 +26,6 @@ const PAYLOAD: ExamData = {
     },
   ],
 };
-
-const json = (body: unknown, ok = true) => ({
-  ok,
-  status: ok ? 200 : 404,
-  json: () => Promise.resolve(body),
-});
-
-beforeEach(() => {
-  vi.useFakeTimers();
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-});
 
 describe("statusFor", () => {
   const entry = { publishAt: "2026-08-18T08:00:00Z", expiresAt: "2026-08-18T18:00:00Z" };
@@ -132,130 +118,5 @@ describe("esc", () => {
     expect(esc(`<a href="x">&'`)).toBe("&lt;a href=&quot;x&quot;&gt;&amp;&#39;");
     expect(esc(null)).toBe("");
     expect(esc("plain")).toBe("plain");
-  });
-});
-
-describe("runSeatingApp", () => {
-  const scheduled = {
-    status: "scheduled",
-    title: "CS202",
-    session: "Morning",
-    publishAt: "2026-08-18T08:00:00Z",
-  };
-  const live = { ...scheduled, status: "live", rooms: [{ room_no: "301", ranges: [] }] };
-  const expired = { ...scheduled, status: "expired" };
-
-  async function flush() {
-    await vi.advanceTimersByTimeAsync(0);
-  }
-
-  it("polls every 10s while scheduled but only emits on change", async () => {
-    const fetchFn = vi.fn().mockResolvedValue(json(scheduled));
-    const onStatus = vi.fn();
-    const onPayload = vi.fn();
-    runSeatingApp({ examId: "e1", fetch: fetchFn, onStatus, onPayload });
-
-    await flush();
-    expect(fetchFn).toHaveBeenCalledWith("/api/seating/e1");
-    expect(onStatus).toHaveBeenCalledWith("scheduled");
-    expect(onPayload).toHaveBeenCalledTimes(1);
-
-    await vi.advanceTimersByTimeAsync(10000);
-    expect(fetchFn).toHaveBeenCalledTimes(2);
-    expect(onStatus).toHaveBeenCalledTimes(1);
-    expect(onPayload).toHaveBeenCalledTimes(1);
-
-    await vi.advanceTimersByTimeAsync(10000);
-    expect(fetchFn).toHaveBeenCalledTimes(3);
-    expect(onStatus).toHaveBeenCalledTimes(1);
-    expect(onPayload).toHaveBeenCalledTimes(1);
-  });
-
-  it("emits live once and stops polling", async () => {
-    const fetchFn = vi
-      .fn()
-      .mockResolvedValueOnce(json(scheduled))
-      .mockResolvedValueOnce(json(live));
-    const onStatus = vi.fn();
-    const onPayload = vi.fn();
-    runSeatingApp({ examId: "e1", fetch: fetchFn, onStatus, onPayload });
-
-    await flush();
-    await vi.advanceTimersByTimeAsync(10000);
-    expect(onStatus).toHaveBeenLastCalledWith("live");
-    expect(onPayload).toHaveBeenLastCalledWith(live);
-    expect(fetchFn).toHaveBeenCalledTimes(2);
-
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(fetchFn).toHaveBeenCalledTimes(2);
-  });
-
-  it("emits payload before status so pages can render with data", async () => {
-    const fetchFn = vi.fn().mockResolvedValue(json(live));
-    const calls: string[] = [];
-    runSeatingApp({
-      examId: "e1",
-      fetch: fetchFn,
-      onStatus: (s) => calls.push(`status:${s}`),
-      onPayload: (d) => calls.push(`payload:${d.status}`),
-    });
-    await flush();
-    expect(calls).toEqual(["payload:live", "status:live"]);
-  });
-
-  it("does not poll an expired exam", async () => {
-    const fetchFn = vi.fn().mockResolvedValue(json(expired));
-    const onStatus = vi.fn();
-    runSeatingApp({ examId: "e1", fetch: fetchFn, onStatus });
-    await flush();
-    expect(onStatus).toHaveBeenCalledWith("expired");
-    await vi.advanceTimersByTimeAsync(60000);
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-  });
-
-  it("treats non-ok responses and payload errors as terminal notfound", async () => {
-    const fetchFn = vi
-      .fn()
-      .mockResolvedValueOnce(json({ error: "no" }, false))
-      .mockResolvedValue(json({ error: "no" }));
-    const onError = vi.fn();
-    runSeatingApp({ examId: "e1", fetch: fetchFn, onError });
-    await flush();
-    expect(onError).toHaveBeenCalledWith("notfound");
-    await vi.advanceTimersByTimeAsync(60000);
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-  });
-
-  it("retries after 30s on network failure, then emits", async () => {
-    const fetchFn = vi
-      .fn()
-      .mockRejectedValueOnce(new TypeError("failed"))
-      .mockResolvedValue(json(scheduled));
-    const onError = vi.fn();
-    const onStatus = vi.fn();
-    runSeatingApp({ examId: "e1", fetch: fetchFn, onStatus, onError });
-
-    await flush();
-    expect(onError).toHaveBeenCalledWith("retry");
-    expect(onStatus).not.toHaveBeenCalled();
-
-    await vi.advanceTimersByTimeAsync(30000);
-    expect(fetchFn).toHaveBeenCalledTimes(2);
-    expect(onStatus).toHaveBeenCalledWith("scheduled");
-  });
-
-  it("stop() cancels pending polls", async () => {
-    const fetchFn = vi.fn().mockResolvedValue(json(scheduled));
-    const app = runSeatingApp({
-      examId: "e1",
-      fetch: fetchFn,
-      onStatus: vi.fn(),
-      onPayload: vi.fn(),
-      onError: vi.fn(),
-    });
-    await flush();
-    app.stop();
-    await vi.advanceTimersByTimeAsync(60000);
-    expect(fetchFn).toHaveBeenCalledTimes(1);
   });
 });

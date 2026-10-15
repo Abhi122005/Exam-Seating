@@ -1,0 +1,28 @@
+name: Lighthouse
+
+# Manual/deliberate trigger only: the audit needs a live deployment URL, which
+# is supplied via the repo variable LH_URL (e.g. the production site). With no
+# LH_URL configured the job skips itself, so CI stays green.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    if: vars.LH_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Audit ${{ vars.LH_URL }}
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: ${{ vars.LH_URL }}
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true

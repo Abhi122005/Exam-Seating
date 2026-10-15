@@ -29,6 +29,7 @@ describe("GET /api/manifest", () => {
 
   it("sets cache-control header", async () => {
     await GET();
-    expect(lastResponse?.headers?.["Cache-Control"]).toContain("s-maxage=30");
+    expect(lastResponse?.headers?.["Cache-Control"]).toContain("s-maxage=15");
+    expect(lastResponse?.headers?.["Cache-Control"]).toContain("stale-while-revalidate=60");
   });
 });

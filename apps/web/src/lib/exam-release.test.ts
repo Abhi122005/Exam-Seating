@@ -62,7 +62,7 @@ async function seedLiveExam(blob: BlobModule, overrides: Record<string, unknown>
 describe("exam release gate", () => {
   it("returns not found for unknown exams", async () => {
     const { release } = await freshRelease();
-    expect(await release.getPublicExamState("ghost")).toEqual({ found: false });
+    expect(await release.getPublicExamMeta("ghost")).toEqual({ found: false });
   });
 
   it("returns expired when only the manifest entry remains", async () => {
@@ -79,7 +79,7 @@ describe("exam release gate", () => {
     ]);
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
-    const state = await release.getPublicExamState("e1");
+    const state = await release.getPublicExamMeta("e1");
     expect(state).toMatchObject({ found: true, status: "expired" });
   });
 
@@ -88,7 +88,7 @@ describe("exam release gate", () => {
     await seedLiveExam(blob);
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-18T07:00:00.000Z"));
-    const state = await release.getPublicExamState("e1");
+    const state = await release.getPublicExamMeta("e1");
     expect(state).toMatchObject({
       found: true,
       status: "scheduled",
@@ -96,40 +96,23 @@ describe("exam release gate", () => {
     });
   });
 
-  it("serves rooms when live", async () => {
+  it("meta never carries rooms in any state", async () => {
     const { blob, release } = await freshRelease();
     await seedLiveExam(blob);
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
-    const state = await release.getPublicExamState("e1");
-    expect(state).toMatchObject({
-      found: true,
-      status: "live",
-      cacheControl: "public, s-maxage=30, stale-while-revalidate=30",
-    });
-    expect(state.found && state.rooms).toHaveLength(1);
+    for (const t of ["2026-08-18T07:00:00Z", "2026-08-18T10:00:00Z", "2026-08-18T19:00:00Z"]) {
+      vi.setSystemTime(new Date(t));
+      const state = await release.getPublicExamMeta("e1");
+      expect(state.found).toBe(true);
+      expect(state).not.toHaveProperty("rooms");
+      if (state.found) {
+        expect(state.meta).not.toHaveProperty("rooms");
+        expect(state.meta).not.toHaveProperty("cleared");
+      }
+    }
   });
 
-  it("expires after expiresAt", async () => {
-    const { blob, release } = await freshRelease();
-    await seedLiveExam(blob);
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-18T19:00:00.000Z"));
-    const state = await release.getPublicExamState("e1");
-    expect(state).toMatchObject({ found: true, status: "expired" });
-    expect(state.found && state.rooms).toBeUndefined();
-  });
-
-  it("expires immediately when cleared", async () => {
-    const { blob, release } = await freshRelease();
-    await seedLiveExam(blob, { cleared: true, rooms: [] });
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
-    const state = await release.getPublicExamState("e1");
-    expect(state).toMatchObject({ found: true, status: "expired" });
-  });
-
-  it("returns shell meta without rooms for a live exam", async () => {
+  it("uses short cache windows when live", async () => {
     const { blob, release } = await freshRelease();
     await seedLiveExam(blob);
     vi.useFakeTimers();
@@ -138,19 +121,100 @@ describe("exam release gate", () => {
     expect(state).toMatchObject({
       found: true,
       status: "live",
-      meta: { examId: "e1", title: "KTU Exam" },
+      cacheControl: "public, s-maxage=30, stale-while-revalidate=15",
     });
-    expect(state.found && state.rooms).toBeUndefined();
   });
 
-  it("shell meta matches full state for scheduled exams", async () => {
+  it("expires after expiresAt", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T19:00:00.000Z"));
+    const state = await release.getPublicExamMeta("e1");
+    expect(state).toMatchObject({ found: true, status: "expired" });
+  });
+
+  it("expires immediately when cleared", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob, { cleared: true, rooms: [] });
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
+    const state = await release.getPublicExamMeta("e1");
+    expect(state).toMatchObject({ found: true, status: "expired" });
+  });
+});
+
+describe("lookupSeat (single-student gate)", () => {
+  it("returns not found for unknown exams", async () => {
+    const { release } = await freshRelease();
+    expect(await release.lookupSeat("ghost", "CS24C01")).toEqual({ found: false });
+  });
+
+  it("rejects invalid roll numbers without a seat", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
+    expect(await release.lookupSeat("e1", "   ")).toEqual({ found: true, state: undefined });
+    expect(await release.lookupSeat("e1", "<script>")).toEqual({ found: true, state: undefined });
+    expect(await release.lookupSeat("e1", "A".repeat(41))).toEqual({
+      found: true,
+      state: undefined,
+    });
+  });
+
+  it("finds a seat inside a live range", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
+    const res = await release.lookupSeat("e1", "cs24c05");
+    expect(res).toMatchObject({
+      found: true,
+      state: {
+        status: "live",
+        seat: { room_no: "301", label: "General Batch", roll_from: "CS24C01", roll_to: "CS24C10" },
+      },
+    });
+  });
+
+  it("returns no seat for an unknown roll while live", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
+    const res = await release.lookupSeat("e1", "ZZ99Z99");
+    expect(res).toEqual({ found: true, state: { status: "live" } });
+  });
+
+  it("never exposes rooms through the result shape", async () => {
+    const { blob, release } = await freshRelease();
+    await seedLiveExam(blob);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-18T10:00:00.000Z"));
+    const res = await release.lookupSeat("e1", "CS24C05");
+    // Only the single student's own seat (incl. its range bounds) — never the
+    // full allocation (rooms array, other rolls, other rooms).
+    expect(res).not.toHaveProperty("rooms");
+    if (res.state?.seat) {
+      expect(res.state.seat.roll_from).toBe("CS24C01");
+      expect(res.state.seat.roll_to).toBe("CS24C10");
+    }
+  });
+
+  it("gates scheduled and expired lookups without seats", async () => {
     const { blob, release } = await freshRelease();
     await seedLiveExam(blob);
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-18T07:00:00.000Z"));
-    const meta = await release.getPublicExamMeta("e1");
-    const full = await release.getPublicExamState("e1");
-    expect(meta).toMatchObject({ found: true, status: "scheduled" });
-    expect(meta).toEqual(full);
+    expect(await release.lookupSeat("e1", "CS24C01")).toEqual({
+      found: true,
+      state: { status: "scheduled" },
+    });
+    vi.setSystemTime(new Date("2026-08-18T19:00:00.000Z"));
+    expect(await release.lookupSeat("e1", "CS24C01")).toEqual({
+      found: true,
+      state: { status: "expired" },
+    });
   });
 });
