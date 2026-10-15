@@ -91,6 +91,40 @@ This file contains guidelines, architectural rules, and project patterns for AI 
   200), no exception text in responses, and production-only CORS allowlist
   with explicit methods/headers.
 
+3e. **Images — optimize once, serve modern formats:**
+
+- Every UI icon is an inline SVG; the only raster asset is the Open Graph
+  share card (`og-image.jpg`). Do not add on-page `<img>` rasters casually.
+- `scripts/optimize-images.py` (needs Pillow) rewrites any raster in
+  `apps/web/public` to the smallest sensible form: a progressive JPEG
+  (crawler-safe for `og:image`/`twitter:image`) plus a WebP companion. Run
+  `pnpm images` locally; CI runs `pnpm images:check` and fails if any file is
+  still large/unoptimized. It is idempotent.
+- Social meta must point at the **`.jpg`** (most crawlers don't fetch WebP for
+  share cards).
+- When an on-page image is genuinely needed, serve it network-adaptively with
+  `<picture>` (browser auto-picks WebP vs JPEG by support — no JS) and native
+  lazy loading, and honor data-saver with a tiny `saveData` check:
+
+  ```html
+  <picture>
+    <source type="image/webp" srcset="/img/photo.webp" />
+    <img src="/img/photo.jpg" alt="..." loading="lazy" decoding="async" width="800" height="600" />
+  </picture>
+  ```
+
+  ```js
+  // Optional: downgrade to a low-quality variant on slow/saver connections.
+  const c = navigator.connection;
+  if (c && (c.saveData || /(^|-)(2g|slow-2g)$/.test(c.effectiveType || ""))) {
+    img.src = "/img/photo.low.jpg";
+  }
+  ```
+
+  This is the maintained alternative to a runtime image-CDN: format
+  negotiation and lazy loading are free and cacheable, and the optimizer
+  script keeps the bytes small at build time.
+
 ---
 
 ## 🧪 Verification Commands
