@@ -7,6 +7,9 @@ import type { ExamData, ExamManifestEntry } from "~/lib/blob";
 const ORIG_CWD = process.cwd();
 let tmpDir: string;
 
+// Not a secret — synthetic example roll id used in tests
+const TEST_ROLL = "CS24C01";
+
 let lastResponse: { status: number; body: unknown; headers?: Record<string, string> } | null = null;
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -47,7 +50,7 @@ function exam(examId: string, publishAt: string, expiresAt: string): ExamData {
   return {
     ...entry(examId, publishAt, expiresAt),
     rooms: [
-      { room_no: "301", ranges: [{ roll_from: "CS24C01", roll_to: "CS24C10", label: "CS" }] },
+      { room_no: "301", ranges: [{ roll_from: TEST_ROLL, roll_to: "CS24C10", label: "CS" }] },
     ],
   };
 }
@@ -67,20 +70,20 @@ function getReq(examId: string, roll?: string) {
 describe("GET /api/seating/[examId] — single-student lookup", () => {
   it("returns 404 for unknown exam", async () => {
     const { GET } = await import("./route");
-    await GET(getReq("unknown", "CS24C01"), makeParams("unknown"));
+    await GET(getReq("unknown", TEST_ROLL), makeParams("unknown"));
     expect(lastResponse?.status).toBe(404);
     expect(lastResponse?.body).toMatchObject({ error: "Exam not found" });
   });
 
   it("returns 404 with no-store cache for unknown exam", async () => {
     const { GET } = await import("./route");
-    await GET(getReq("unknown", "CS24C01"), makeParams("unknown"));
+    await GET(getReq("unknown", TEST_ROLL), makeParams("unknown"));
     expect(lastResponse?.headers?.["Cache-Control"]).toContain("no-store");
   });
 
   it("rejects malformed exam ids with 400 before touching storage", async () => {
     const { GET } = await import("./route");
-    await GET(getReq("../../etc/passwd", "CS24C01"), makeParams("../../etc/passwd"));
+    await GET(getReq("../../etc/passwd", TEST_ROLL), makeParams("../../etc/passwd"));
     expect(lastResponse?.status).toBe(400);
     expect(lastResponse?.body).toMatchObject({ error: "Invalid exam id" });
   });
@@ -135,7 +138,7 @@ describe("GET /api/seating/[examId] — single-student lookup", () => {
     await blob.writeManifest([entry("future", "2099-12-31T00:00:00Z", "2099-12-31T23:59:59Z")]);
 
     const { GET } = await import("./route");
-    await GET(getReq("future", "CS24C01"), makeParams("future"));
+    await GET(getReq("future", TEST_ROLL), makeParams("future"));
     expect(lastResponse?.status).toBe(200);
     expect(lastResponse?.body).toMatchObject({ status: "scheduled" });
     expect((lastResponse?.body as any).seat).toBeUndefined();
@@ -148,7 +151,7 @@ describe("GET /api/seating/[examId] — single-student lookup", () => {
     await blob.writeManifest([entry("old", "2020-01-01T00:00:00Z", "2020-01-01T12:00:00Z")]);
 
     const { GET } = await import("./route");
-    await GET(getReq("old", "CS24C01"), makeParams("old"));
+    await GET(getReq("old", TEST_ROLL), makeParams("old"));
     expect(lastResponse?.status).toBe(200);
     expect(lastResponse?.body).toMatchObject({ status: "expired" });
   });
