@@ -1,0 +1,5 @@
+# Public SonarCloud project identifiers and workflow references; none are credentials.
+19f05f74262390ada7ca3f75b871d5b83a0d1f75:sonar-project.properties:generic-api-key:1
+126f12caaf4fcf5080c21105191f6d44fa9f5efe:.github/workflows/sonarcloud.yml:generic-api-key:55
+860ff2454940c3832cede5184832c51d6fb896ca:sonar-project.properties:generic-api-key:1
+70a8e15a2afa60159d34ad0bf5bf8e9e8109e4ce:sonar-project.properties:generic-api-key:1
