@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@vercel/blob": "^2.8.1",
-    "next": "^16.4.0"
+    "next": "^16.4.3"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
