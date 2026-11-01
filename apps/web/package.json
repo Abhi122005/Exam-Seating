@@ -12,7 +12,7 @@
     "lint:dead": "knip"
   },
   "dependencies": {
-    "@vercel/blob": "^2.8.1",
+    "@vercel/blob": "^2.8.2",
     "next": "^16.4.0"
   },
   "devDependencies": {
